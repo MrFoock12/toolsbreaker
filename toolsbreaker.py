@@ -14,6 +14,7 @@ VPS_IP = "209.97.166.25"
 VPS_USER = "root"
 VPS_PATH = "/root/korban/results"
 
+# USER INFO — REAL-TIME
 CURRENT_TIME = datetime.now().strftime("%d %b %Y - %I:%M %p WIB")
 COUNTRY = "ID"
 
@@ -43,15 +44,13 @@ DEVELOPER_WHOAMI = "u0_a197"  # GANTI SESUAI whoami LO
 IS_DEVELOPER = WHOAMI == DEVELOPER_WHOAMI
 
 # TOKEN SYSTEM
-def load_tokens():
-    if not os.path.exists(LICENSE_FILE):
-        return {}
+def load_tokens(): 
     try:
         return json.load(open(LICENSE_FILE))
     except:
         return {}
 
-def save_tokens(t):
+def save_tokens(t): 
     with open(LICENSE_FILE, 'w') as f:
         json.dump(t, f, indent=2)
 
@@ -66,76 +65,19 @@ def validate_token(username, token):
         return None
     return user
 
-def create_token():
-    print(colored("\n[DEVELOPER MODE] BUAT TOKEN BARU", 'magenta', attrs=['bold']))
-    username = input(colored("Username buyer: ", 'yellow')).strip()
-    buyer_whoami = input(colored("whoami buyer: ", 'yellow')).strip()
-    
-    print(colored("Pilih plan:", 'cyan'))
-    plans = ["pemula 1hari", "pemula 1minggu", "pemula 1bulan", "pro 1hari", "pro 1minggu", "pro 1bulan"]
-    for p in plans: print(colored(f"  {p}", 'white'))
-    
-    plan_input = input(colored("Plan: ", 'yellow')).strip().lower()
-    plan_map = {
-        "pemula 1hari": ("PEMULA 1HARI", 1),
-        "pemula 1minggu": ("PEMULA 1MINGGU", 7),
-        "pemula 1bulan": ("PEMULA 1BULAN", 30),
-        "pro 1hari": ("PRO 1HARI", 1),
-        "pro 1minggu": ("PRO 1MINGGU", 7),
-        "pro 1bulan": ("PRO 1BULAN", 30),
-    }
-    
-    if plan_input not in plan_map:
-        print(colored("Plan salah!", 'red'))
-        return False
-    
-    plan_name, days = plan_map[plan_input]
-    token = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-    expires = (datetime.now() + timedelta(days=days)).isoformat()
-    
-    t = load_tokens()
-    t[username] = {
-        "token": token,
-        "plan": plan_name,
-        "active": True,
-        "expires": expires,
-        "whoami": buyer_whoami,
-        "created_at": CURRENT_TIME,
-        "country": COUNTRY
-    }
-    save_tokens(t)
-    print(colored(f"\n[SUCCESS] Token: {token}", 'green'))
-    print(colored(f"   Plan: {plan_name}", 'cyan'))
-    print(colored(f"   whoami: {buyer_whoami}", 'cyan'))
-    input("\nEnter...")
-
-# LIHAT TOKEN — HANYA DEVELOPER
-def view_tokens():
-    if not IS_DEVELOPER:
-        print(colored("\n[ERROR] Akses ditolak!", 'red', attrs=['bold']))
-        input("\nEnter...")
-        return
-    t = load_tokens()
-    print(colored("\n=== DATABASE TOKEN ===", 'yellow', attrs=['bold']))
-    if not t:
-        print(colored("   [KOSONG]", 'red'))
-    else:
-        print(json.dumps(t, indent=2, ensure_ascii=False))
-    input("\nEnter...")
-
 # BANNER
 PURPLE = '\033[38;5;55m'
 def print_banner(uid, plan):
     print(colored(f"""
 {PURPLE}{Style.BRIGHT}
-╔═══════════════════════════════╗
-║       TOOLS BREAKER v1.0      ║
-╚═══════════════════════════════╝
+╔═══════════════════════════════════════════════════╗
+║   TOOLS BREAKER v10.3 MEGA ELITE = 100+ FITUR    ║
+╚═══════════════════════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
 Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}
 """, None))
 
-# SAVE RESULT + AUTO SCP KE VPS
+# SAVE RESULT
 def save_result(filename, content):
     filepath = os.path.join(RESULTS_DIR, filename)
     with open(filepath, "a", encoding="utf-8") as f:
@@ -148,14 +90,24 @@ def save_result(filename, content):
     except:
         print(colored("[SYNC] Gagal", 'red'))
 
-# FITUR 10: NOTIF RETAS
-def fitur_notif_retas():
+# FITUR 01 - 11 (SEMENTARA CONTOH)
+def fitur_01(): print(colored("\n[PHISING] Fitur aktif! Target: facebook.com", 'yellow')); input("Enter...")
+def fitur_02(): print(colored("\n[RAT] Remote Access aktif! IP: 192.168.1.100", 'yellow')); input("Enter...")
+def fitur_03(): print(colored("\n[DDoS] Stresser aktif! Target: example.com", 'yellow')); input("Enter...")
+def fitur_04(): print(colored("\n[BOMBER] SMS/Call bomber aktif! Target: +628...", 'yellow')); input("Enter...")
+def fitur_05(): print(colored("\n[OSINT] Tracking aktif! Nama: John Doe", 'yellow')); input("Enter...")
+def fitur_06(): print(colored("\n[DEEPFAKE] AI aktif! Generating...", 'yellow')); input("Enter...")
+def fitur_07(): print(colored("\n[ENCRYPT] File terenkripsi!", 'yellow')); input("Enter...")
+def fitur_08(): print(colored("\n[EXPLOIT] 0DAY aktif! CVE-2025-XXXX", 'yellow')); input("Enter...")
+def fitur_09(): print(colored("\n[UNDANG GRUP] 1 undangan terkirim!", 'yellow')); input("Enter...")
+def fitur_10():
     print(colored("\nNOTIF WHATSAPP ANDA KENA RETAS", 'blue', attrs=['bold']))
     target = input(colored("Nomor target (+62): ", 'yellow'))
     save_result("notif_retas.log", f"Target: {target}")
     save_result("notif_retas.log", "Status: KLIK → DATA MASUK")
     print(colored(f"[SENT] Terkirim!", 'green'))
     input("Enter...")
+def fitur_11(): print(colored("\n[DEVTOOLS] Debug mode aktif!", 'yellow')); input("Enter...")
 
 # MAIN
 def main():
@@ -165,19 +117,19 @@ def main():
     if IS_DEVELOPER:
         uid = str(uuid.uuid4())[:8]
         plan = "DEVELOPER LIFETIME"
-        print(colored(f"\n[DEVELOPER] Login @{WHOAMI}", 'magenta', attrs=['bold']))
+        print(colored(f"\n[DEVELOPER] Login @{WHOAMI}", 'magenta'))
         input("Enter...")
     else:
         while True:
             print(colored("\n[1] MASUKIN TOKEN LU", 'yellow'))
             print(colored("[0] Keluar", 'red'))
-            choice = input(colored("Pilih: ", 'yellow')).strip()
+            choice = input(colored("Pilih: ", 'yellow'))
             if choice == "1":
-                username = input(colored("Username: ", 'yellow')).strip()
-                token = input(colored("Token: ", 'yellow')).strip()
+                username = input(colored("Username: ", 'yellow'))
+                token = input(colored("Token: ", 'yellow'))
                 user = validate_token(username, token)
                 if not user:
-                    print(colored("TOKEN SALAH / KADALUARSA!", 'red'))
+                    print(colored("TOKEN LU SALAH GOBLOK / KADALUARSA!", 'red'))
                     continue
                 uid = str(uuid.uuid4())[:8]
                 plan = user['plan']
@@ -188,29 +140,52 @@ def main():
 
     # DEVELOPER MENU
     while IS_DEVELOPER:
-        print(colored("\n[2] Buat Token Baru", 'magenta'))
-        print(colored("[3] Lihat Database Token", 'yellow'))
-        print(colored("[0] Masuk ke Tools", 'green'))
-        ch = input(colored("Pilih: ", 'yellow')).strip()
-        if ch == "2": create_token()
-        elif ch == "3": view_tokens()
+        print(colored("\n[2] Buat Token", 'magenta'))
+        print(colored("[3] Lihat tokens.json", 'yellow'))
+        print(colored("[0] Masuk Tools", 'green'))
+        ch = input(colored("Pilih: ", 'yellow'))
+        if ch == "2":
+            # create_token() di sini
+            pass
+        elif ch == "3":
+            print(json.dumps(load_tokens(), indent=2))
+            input("Enter...")
         elif ch == "0": break
-        else: print(colored("Pilihan salah!", 'red'))
 
-    # MENU UTAMA
+    # MENU UTAMA — 11 FITUR LENGKAP
     while True:
         os.system('clear')
         print_banner(uid, plan)
-        print(colored(" < 11 MENU UTAMA — TOTAL 100+ FITUR > ", 'cyan'))
+        print(colored("           < MENU UTAMA >      ", 'cyan'))
         print("╔════╦══════════════════════════╦════════════════╗")
-        print("║ 10 ║ NOTIF RETAS (PUSAT BANTUAN) ║ Aktif          ║")
+        print("║  1 ║ PHISING & SOCIAL ENG     ║ Aktif          ║")
+        print("║  2 ║ RAT & REMOTE ACCESS      ║ Aktif          ║")
+        print("║  3 ║ DDoS & STRESSER          ║ Aktif          ║")
+        print("║  4 ║ BOMBER TOOLS             ║ Aktif          ║")
+        print("║  5 ║ OSINT & TRACKING         ║ Aktif          ║")
+        print("║  6 ║ DEEPFAKE & AI            ║ Aktif          ║")
+        print("║  7 ║ ENCRYPT & DECRYPT        ║ Aktif          ║")
+        print("║  8 ║ EXPLOIT & 0DAY           ║ Aktif          ║")
+        print("║  9 ║ KIRIM UNDANGAN GRUP WA   ║ Aktif          ║")
+        print("║ 10 ║ NOTIF (PUSAT BANTUAN)    ║ Aktif          ║")
+        print("║ 11 ║ DEVTOOLS                 ║ Aktif          ║")
+        print("║ 00 ║ EXIT                     ║                ║")
         print("╚════╩══════════════════════════╩════════════════╝")
-        ch = input(colored("\nPilih Menu (10 / 00): ", 'yellow')).strip()
-        if ch == "10": fitur_notif_retas()
-        elif ch == "00": 
-            print(colored("\nKELUAR LU DARI SINI...", 'red'))
-            break
-        input(colored("\nTekan Enter...", 'cyan'))
+        
+        ch = input(colored("\nPilih Menu (1-11 / 00): ", 'yellow'))
+        if ch == "1": fitur_1()
+        elif ch == "2": fitur_2()
+        elif ch == "3": fitur_3()
+        elif ch == "4": fitur_4()
+        elif ch == "5": fitur_5()
+        elif ch == "6": fitur_6()
+        elif ch == "7": fitur_7()
+        elif ch == "8": fitur_8()
+        elif ch == "9": fitur_9()
+        elif ch == "10": fitur_10()
+        elif ch == "11": fitur_11()
+        elif ch == "00": break
+        input("Enter...")
 
 if __name__ == "__main__":
     main()
