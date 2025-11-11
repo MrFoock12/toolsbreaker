@@ -3,14 +3,36 @@ import os, json, time, uuid, random, string, subprocess, base64, re, requests, s
 from datetime import datetime, timedelta
 from colorama import init, Fore, Style
 from termcolor import colored
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
+
+# Try to import optional dependencies with fallbacks
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from webdriver_manager.chrome import ChromeDriverManager
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
+
+try:
+    import cryptography
+    CRYPTO_AVAILABLE = True
+except ImportError:
+    CRYPTO_AVAILABLE = False
+
+try:
+    from PIL import Image
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+
 init(autoreset=True)
 
 # ================== CONFIG ==================
 RESULTS_DIR = "results"
 LICENSE_FILE = 'tokens.json'
+GITHUB_REPO = "MrFoock12/tools-breaker"
+SCRIPT_NAME = "tools_breaker.py"
+BACKUP_NAME = "tools_breaker_backup.py"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 VPS_IP = "209.97.166.25"
@@ -178,9 +200,12 @@ def login():
     os.system('clear')
     print(colored("""
 ╔═════════════════════════════════════════╗
-║            TOOLS BREAKER v1.0           ║
+║            TOOLS BREAKER v2.2           ║
 ╚═════════════════════════════════════════╝
 """, 'magenta', attrs=['bold']))
+
+    # Check dependencies first
+    check_dependencies()
 
     # DEVELOPER MODE - Skip login if developer
     if IS_DEVELOPER:
@@ -213,7 +238,7 @@ def login():
 
     # NORMAL USER LOGIN
     print(colored("   • Gunakan token dari @MrFoock12", 'yellow'))
-    print(colored("   • Plan: PEMULA / PRO / MEGA ELITE", 'cyan'))
+    print(colored("   • Plan: PEMULA / PRO ", 'cyan'))
     print(colored("   • Support: t.me/MrFoock12", 'white'))
     print()
 
@@ -249,11 +274,11 @@ def print_banner(uid, plan):
     print(colored(f"""
 {PURPLE}{Style.BRIGHT}
        ╔════════════════════════════════════╗
-       ║         TOOLS BREAKER v1.0         ║
+       ║         TOOLS BREAKER v2.2         ║
        ╚════════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
 Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}
-VPS: {VPS_IP} | Sync: AKTIF | GitHub: MrFoock12
+GitHub: {GITHUB_REPO}
 """, None))
 
 # ================== SAVE + SYNC VPS ==================
@@ -269,7 +294,7 @@ def save_result(filename, content):
     except:
         print(colored("[SYNC] Gagal → tetap lokal", 'red'))
 
-# ================== FITUR 1 - 11 (SEPERTI BIASA) ==================
+# ================== OPTIMIZED FEATURES ==================
 def fitur_1():  # PHISING
     os.system('clear'); print(colored("\n[1] PHISING & SOCIAL ENG — 100+ TEMPLATE!", 'cyan', attrs=['bold']))
     target = input(colored("Target: ", 'yellow')).strip()
@@ -279,10 +304,64 @@ def fitur_1():  # PHISING
 
 def fitur_2():  # RAT
     os.system('clear'); print(colored("\n[2] RAT & REMOTE ACCESS!", 'cyan', attrs=['bold']))
+    if not CRYPTO_AVAILABLE:
+        print(colored("   [INFO] Fitur ini membutuhkan: cryptography", 'yellow'))
+        print(colored("   Install: pip install cryptography", 'white'))
+        input("\nEnter...")
+        return
+    
     ip = input(colored("IP Target: ", 'yellow')).strip()
     print(colored(f"[CONNECT] ke {ip}", 'green')); save_result("rat.log", f"IP: {ip}")
     input("\nEnter...")
 
+def fitur_15():  # MASS BANNED TIKTOK
+    os.system('clear'); print(colored("\n[15] MASS BANNED TIKTOK!", 'red', attrs=['bold']))
+    
+    if not SELENIUM_AVAILABLE:
+        print(colored("   [INFO] Fitur ini membutuhkan: selenium", 'yellow'))
+        print(colored("   Install: pip install selenium webdriver-manager", 'white'))
+        input("\nEnter...")
+        return
+    
+    file_path = input(colored("File target.txt: ", 'yellow')).strip() or "target.txt"
+    if not os.path.exists(file_path): print(colored("[ERROR] File tidak ada!", 'red')); input(); return
+
+    with open(file_path, 'r') as f:
+        targets = [line.strip().lstrip('@') for line in f if line.strip()]
+
+    total = len(targets)
+    print(colored(f"\n[REAL] Mass banned {total} akun...", 'cyan'))
+    save_result("mass_banned.log", f"Targets: {total}")
+
+    try:
+        from selenium.webdriver.chrome.options import Options
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        print(colored("   [OK] Selenium ready!", 'green'))
+    except Exception as e:
+        print(colored(f"[ERROR] Selenium: {e}", 'red')); input(); return
+
+    success = 0
+    for idx, user in enumerate(targets):
+        print(colored(f"\n[{idx+1}/{total}] @{user}...", 'yellow'))
+        try:
+            driver.get(f"https://www.tiktok.com/@{user}"); time.sleep(3)
+            driver.find_element(By.XPATH, "//button[contains(text(), 'Report')]").click(); time.sleep(1)
+            reason = random.choice(["spam", "harassment", "nudity", "violence"])
+            driver.find_element(By.XPATH, f"//button[contains(text(), '{reason}')]").click(); time.sleep(1)
+            driver.find_element(By.XPATH, "//button[contains(text(), 'Submit')]").click(); time.sleep(1)
+            print(colored("   [SUCCESS]", 'green')); success += 1
+        except: print(colored("   [FAILED]", 'red'))
+
+    driver.quit()
+    print(colored(f"\n[MASS BAN SELESAI] Berhasil: {success}/{total}", 'cyan'))
+    input("\nEnter...")
+
+# ================== SIMPLIFIED OTHER FEATURES ==================
 def fitur_3():  # DDOS
     os.system('clear'); print(colored("\n[3] DDOS & STRESSER!", 'cyan', attrs=['bold']))
     target = input(colored("URL/IP: ", 'yellow')).strip()
@@ -305,12 +384,22 @@ def fitur_5():  # OSINT
 
 def fitur_6():  # DEEPFAKE
     os.system('clear'); print(colored("\n[6] DEEPFAKE & AI!", 'cyan', attrs=['bold']))
+    if not PILLOW_AVAILABLE:
+        print(colored("   [INFO] Fitur ini membutuhkan: pillow", 'yellow'))
+        print(colored("   Install: pip install pillow", 'white'))
+        input("\nEnter...")
+        return
     foto = input(colored("Foto: ", 'yellow')).strip()
     print(colored(f"[GENERATE] Deepfake selesai!", 'green')); save_result("deepfake.log", f"Foto: {foto}")
     input("\nEnter...")
 
 def fitur_7():  # ENCRYPT
     os.system('clear'); print(colored("\n[7] ENCRYPT & DECRYPT!", 'cyan', attrs=['bold']))
+    if not CRYPTO_AVAILABLE:
+        print(colored("   [INFO] Fitur ini membutuhkan: cryptography", 'yellow'))
+        print(colored("   Install: pip install cryptography", 'white'))
+        input("\nEnter...")
+        return
     file = input(colored("File: ", 'yellow')).strip()
     mode = input(colored("e/d: ", 'yellow')).strip().lower()
     print(colored(f"[{mode.upper()}] {file}", 'green')); save_result("encrypt.log", f"File: {file}")
@@ -331,7 +420,11 @@ def fitur_9():  # UNDANGAN WA
 
 def fitur_10():  # NOTIF
     os.system('clear'); print(colored("\n[10] NOTIF — PUSAT BANTUAN!", 'cyan', attrs=['bold']))
-    print(colored("   • Update: v15.1", 'white')); print(colored("   • Support: @MrFoock12", 'white'))
+    print(colored("   • Update: v2.2 - Simple & Clean", 'white'))
+    print(colored("   • Support: @MrFoock12", 'white'))
+    print(colored("   • GitHub: https://github.com/MrFoock12/toolsbreaker", 'white'))
+    print(colored("   • Install semua dependencies:", 'cyan'))
+    print(colored("     pip install -r requirements.txt", 'white'))
     input("\nEnter...")
 
 def fitur_11():  # DEVTOOLS
@@ -342,17 +435,18 @@ def fitur_11():  # DEVTOOLS
         print(colored("   [DEVELOPER MENU]", 'green', attrs=['bold']))
         print(colored("   1. Buat Token Baru", 'white'))
         print(colored("   2. Lihat Semua Token", 'white'))
-        print(colored("   3. Kembali", 'white'))
+        print(colored("   3. Keluar", 'white'))
         
         choice = input(colored("   Pilih [1-3]: ", 'yellow')).strip()
         if choice == "1":
             create_token()
         elif choice == "2":
             view_tokens()
+        elif choice == "3":
+            manual_update()
     input("\nEnter...")
 
-# ================== FITUR 14: PHONE NUMBER INFO ==================
-def fitur_14():
+def fitur_14():  # PHONE NUMBER INFO
     os.system('clear'); print(colored("\n[14] PHONE NUMBER INFO!", 'red', attrs=['bold']))
     nomor = input(colored("Nomor (+62): ", 'yellow')).strip()
     nomor_api = nomor[1:] if nomor.startswith('0') else (nomor[3:] if nomor.startswith('+62') else nomor)
@@ -382,63 +476,34 @@ def fitur_14():
 
     input("\nEnter...")
 
-# ================== FITUR 15: MASS BANNED TIKTOK ==================
-def fitur_15():
-    os.system('clear'); print(colored("\n[15] MASS BANNED TIKTOK!", 'red', attrs=['bold']))
-    file_path = input(colored("File target.txt: ", 'yellow')).strip() or "target.txt"
-    if not os.path.exists(file_path): print(colored("[ERROR] File tidak ada!", 'red')); input(); return
-
-    with open(file_path, 'r') as f:
-        targets = [line.strip().lstrip('@') for line in f if line.strip()]
-
-    total = len(targets)
-    print(colored(f"\n[REAL] Mass banned {total} akun...", 'cyan'))
-    save_result("mass_banned.log", f"Targets: {total}")
-
-    try:
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless'); options.add_argument('--no-sandbox')
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-        print(colored("   [OK] Selenium ready!", 'green'))
-    except Exception as e:
-        print(colored(f"[ERROR] Selenium: {e}", 'red')); input(); return
-
-    success = 0
-    for idx, user in enumerate(targets):
-        print(colored(f"\n[{idx+1}/{total}] @{user}...", 'yellow'))
-        try:
-            driver.get(f"https://www.tiktok.com/@{user}"); time.sleep(3)
-            driver.find_element(By.XPATH, "//button[contains(text(), 'Report')]").click(); time.sleep(1)
-            reason = random.choice(["spam", "harassment", "nudity", "violence"])
-            driver.find_element(By.XPATH, f"//button[contains(text(), '{reason}')]").click(); time.sleep(1)
-            driver.find_element(By.XPATH, "//button[contains(text(), 'Submit')]").click(); time.sleep(1)
-            print(colored("   [SUCCESS]", 'green')); success += 1
-        except: print(colored("   [FAILED]", 'red'))
-
-    driver.quit()
-    print(colored(f"\n[MASS BAN SELESAI] Berhasil: {success}/{total}", 'cyan'))
-    input("\nEnter...")
-
 # ================== MENU UTAMA ==================
 def menu_utama(username, plan):
     os.system('clear'); play_music(); print_banner(username, plan)
 
     print(colored("╔══════════════════════════════════════════════════════════════╗", 'cyan', attrs=['bold']))
-    print(colored("║                       < MENU UTAMA >                         ║", 'cyan', attrs=['bold']))
+    print(colored("║                       < MENU UTAMA v2.2 >                    ║", 'cyan', attrs=['bold']))
     print(colored("╚══════════════════════════════════════════════════════════════╝", 'cyan', attrs=['bold']))
-    print(colored("║ 1  PHISING & SOCIAL ENG             Aktif                    ║", 'white'))
-    print(colored("║ 2  RAT & REMOTE ACCESS              Aktif                    ║", 'white'))
-    print(colored("║ 3  DDOS & STRESSER                  Aktif                    ║", 'white'))
-    print(colored("║ 4  BOMBER TOOLS                     Aktif                    ║", 'white'))
-    print(colored("║ 5  OSINT & TRACKING                 Aktif                    ║", 'white'))
-    print(colored("║ 6  DEEPFAKE & AI                    Aktif                    ║", 'white'))
-    print(colored("║ 7  ENCRYPT & DECRYPT                Aktif                    ║", 'white'))
-    print(colored("║ 8  EXPLOIT & 0DAY                   Aktif                    ║", 'white'))
-    print(colored("║ 9  KIRIM UNDANGAN GRUP WA           Aktif                    ║", 'white'))
-    print(colored("║10  DASHBOARD MONITORING             Aktif                    ║", 'white'))
-    print(colored("║11  DEVTOOLS                         Aktif                    ║", 'white'))
-    print(colored("║14  PHONE NUMBER INFO                Aktif                    ║", 'white'))
-    print(colored("║15  MASS BANNED TIKTOK               Aktif                    ║", 'white'))
+    
+    # Show feature status
+    features = [
+        ("1  PHISING & SOCIAL ENG", "Aktif", 'white'),
+        ("2  RAT & REMOTE ACCESS", "Aktif" if CRYPTO_AVAILABLE else "Need Crypto", 'green' if CRYPTO_AVAILABLE else 'yellow'),
+        ("3  DDOS & STRESSER", "Aktif", 'white'),
+        ("4  BOMBER TOOLS", "Aktif", 'white'),
+        ("5  OSINT & TRACKING", "Aktif", 'white'),
+        ("6  DEEPFAKE & AI", "Aktif" if PILLOW_AVAILABLE else "Need Pillow", 'green' if PILLOW_AVAILABLE else 'yellow'),
+        ("7  ENCRYPT & DECRYPT", "Aktif" if CRYPTO_AVAILABLE else "Need Crypto", 'green' if CRYPTO_AVAILABLE else 'yellow'),
+        ("8  EXPLOIT & 0DAY", "Aktif", 'white'),
+        ("9  KIRIM UNDANGAN GRUP WA", "Aktif", 'white'),
+        ("10 DASHBOARD MONITORING", "Aktif", 'white'),
+        ("11 DEVTOOLS", "Aktif", 'white'),
+        ("14 PHONE NUMBER INFO", "Aktif", 'white'),
+        ("15 MASS BANNED TIKTOK", "Aktif" if SELENIUM_AVAILABLE else "Need Selenium", 'green' if SELENIUM_AVAILABLE else 'yellow')
+    ]
+    
+    for feature, status, color in features:
+        print(colored(f"║ {feature:<35} {status:<20} ║", color))
+    
     if IS_DEVELOPER:
         print(colored("║13  CEK NOMOR + MUTASI 30 HARI   DEV ONLY                  ║", 'red', attrs=['bold']))
     print(colored("║ 0  EXIT                             Aktif                    ║", 'red'))
@@ -446,26 +511,26 @@ def menu_utama(username, plan):
 
     ch = input(colored("\nPilih [1-15 / 0]: ", 'yellow')).strip()
 
-    if ch == "1": fitur_1()
-    elif ch == "2": fitur_2()
-    elif ch == "3": fitur_3()
-    elif ch == "4": fitur_4()
-    elif ch == "5": fitur_5()
-    elif ch == "6": fitur_6()
-    elif ch == "7": fitur_7()
-    elif ch == "8": fitur_8()
-    elif ch == "9": fitur_9()
-    elif ch == "10": fitur_10()
-    elif ch == "11": fitur_11()
-    elif ch == "14": fitur_14()
-    elif ch == "15": fitur_15()
-    elif ch == "0": sys.exit(0)
-    else: print(colored("Pilihan tidak valid!", 'red')); input("Enter...")
+    feature_map = {
+        "1": fitur_1, "2": fitur_2, "3": fitur_3, "4": fitur_4, "5": fitur_5,
+        "6": fitur_6, "7": fitur_7, "8": fitur_8, "9": fitur_9, "10": fitur_10,
+        "11": fitur_11, "14": fitur_14, "15": fitur_15
+    }
+    
+    if ch in feature_map:
+        feature_map[ch]()
+    elif ch == "0": 
+        sys.exit(0)
+    else: 
+        print(colored("Pilihan tidak valid!", 'red')); input("Enter...")
 
     menu_utama(username, plan)
 
 # ================== JALANKAN ==================
 if __name__ == "__main__":
+    # Auto-check for updates on startup
+    check_for_updates()
+    
     if not os.path.exists('ua.txt'):
         print(colored("Buat ua.txt dulu! Isi 5-10 User-Agent!", 'red'))
         sys.exit(1)

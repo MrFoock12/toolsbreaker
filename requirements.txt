@@ -1,28 +1,35 @@
+# Core dependencies
 colorama==0.4.6
 termcolor==2.3.0
 selenium==4.15.0
 webdriver-manager==4.0.1
 requests==2.31.0
 urllib3==2.0.7
+
+# Security & Crypto
 cryptography==41.0.7
 pycryptodome==3.19.0
+
+# Web scraping
 beautifulsoup4==4.12.2
 lxml==4.9.3
+
+# Image processing
 pillow==10.0.1
-numpy==1.24.3
-scipy==1.10.1
-opencv-python==4.8.1.78
-tensorflow==2.13.0
-torch==2.0.1
-torchvision==0.15.2
+
+# Network tools
 scapy==2.5.0
 paramiko==3.3.1
+
+# System utilities
 psutil==5.9.6
+
+# Text utilities
 pyfiglet==0.8.post1
 qrcode==7.4.2
-pyzbar==0.1.9
-geocoder==1.38.1
+
+# Phone number validation
 phonenumbers==8.13.22
+
+# User agent rotation
 fake-useragent==1.4.0
-socks5line==1.0.0
-pyinstaller==5.13.0
