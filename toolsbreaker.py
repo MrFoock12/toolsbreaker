@@ -255,15 +255,6 @@ def fitur_08(): print(colored("\n[8] EXPLOIT AKTIF", 'yellow')); save_result("ex
 def fitur_09(): print(colored("\n[9] UNDANG GRUP AKTIF", 'yellow')); save_result("undang.log", "Terkirim: 1000+"); input("Enter...")
 def fitur_11(): print(colored("\n[11] DEVTOOLS — Debug aktif!", 'yellow')); input("Enter...")
 
-# ================== GITHUB AUTO UPDATE ==================
-def git_update():
-    try:
-        subprocess.run("git add .", shell=True, check=True)
-        subprocess.run('git commit -m "update: v10.6 real features + wa notif"', shell=True, check=True)
-        subprocess.run("git push", shell=True, check=True)
-        print(colored("[GITHUB] Update berhasil ke MrFoock12!", 'green'))
-    except: print(colored("[GITHUB] Gagal", 'red'))
-
 # ================== MAIN ==================
 def main():
     os.system('clear')
@@ -320,7 +311,7 @@ def main():
         print("║  9 ║ KIRIM UNDANGAN GRUP WA   ║ Aktif          ║")
         print("║ 10 ║ NOTIF (PUSAT BANTUAN)    ║ Aktif          ║")
         print("║ 11 ║ DEVTOOLS                 ║ Aktif          ║")
-        print("║ 00 ║ EXIT                     ║                ║")
+        print("║  0 ║ EXIT                     ║                ║")
         print("╚════╩══════════════════════════╩════════════════╝")
 
         ch = input(colored("\nPilih 1-11: ", 'yellow')).strip()
