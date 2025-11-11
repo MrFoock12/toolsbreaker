@@ -1,6 +1,15 @@
-cat > requirements.txt << 'EOF'
+# TOOLS BREAKER v15.0 MEGA ELITE - DEPENDENCIES
+# Install: pip install -r requirements.txt
+# Termux: pkg install python chromium-driver termux-api
+
+requests==2.32.3
 colorama==0.4.6
-termcolor==2.3.0
-phonenumbers==8.13.25
-requests==2.31.0
-EOF
+termcolor==2.4.0
+selenium==4.25.0
+webdriver-manager==4.0.2
+
+# Catatan:
+# - Selenium butuh ChromeDriver → otomatis via webdriver-manager
+# - Musik brutal → pakai termux-media-player
+# - Sync VPS → pakai sshpass
+# - Semua fitur 100% jalan di Termux F-Droid
