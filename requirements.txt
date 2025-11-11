@@ -1,0 +1,6 @@
+cat > requirements.txt << 'EOF'
+colorama==0.4.6
+termcolor==2.3.0
+phonenumbers==8.13.25
+requests==2.31.0
+EOF
