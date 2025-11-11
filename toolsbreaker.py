@@ -5,7 +5,9 @@ from colorama import init, Fore, Style
 from termcolor import colored
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By                                             from webdriver_manager.chrome import ChromeDriverManager                                                                                                                        init(autoreset=True)
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+init(autoreset=True)
 
 # ================== CONFIG ==================
 RESULTS_DIR = "results"
