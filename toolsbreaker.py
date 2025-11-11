@@ -5,10 +5,7 @@ from colorama import init, Fore, Style
 from termcolor import colored
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-
-init(autoreset=True)
+from selenium.webdriver.common.by import By                                             from webdriver_manager.chrome import ChromeDriverManager                                                                                                                        init(autoreset=True)
 
 # ================== CONFIG ==================
 RESULTS_DIR = "results"
@@ -104,8 +101,8 @@ def login():
 
     user_data = validate_token(username, token)
     if not user_data:
-        print(colored("\n[ERROR] Token salah / kadaluarsa / whoami tidak cocok!", 'red', attrs=['bold']))
-        print(colored("   • Beli token: @MrFoock12", 'yellow'))
+        print(colored("\n[ERROR] Token Lu Salah Goblok / kadaluarsa / whoami tidak cocok!", 'red', attrs=['bold']))
+        print(colored("   • Beli token: @MrFoock12/+62895622994489", 'yellow'))
         input("\nEnter untuk coba lagi...")
         return login()
 
