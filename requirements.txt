@@ -1,15 +1,28 @@
-# TOOLS BREAKER v15.0 MEGA ELITE - DEPENDENCIES
-# Install: pip install -r requirements.txt
-# Termux: pkg install python chromium-driver termux-api
-
-requests==2.32.3
 colorama==0.4.6
-termcolor==2.4.0
-selenium==4.25.0
-webdriver-manager==4.0.2
-
-# Catatan:
-# - Selenium butuh ChromeDriver → otomatis via webdriver-manager
-# - Musik brutal → pakai termux-media-player
-# - Sync VPS → pakai sshpass
-# - Semua fitur 100% jalan di Termux F-Droid
+termcolor==2.3.0
+selenium==4.15.0
+webdriver-manager==4.0.1
+requests==2.31.0
+urllib3==2.0.7
+cryptography==41.0.7
+pycryptodome==3.19.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+pillow==10.0.1
+numpy==1.24.3
+scipy==1.10.1
+opencv-python==4.8.1.78
+tensorflow==2.13.0
+torch==2.0.1
+torchvision==0.15.2
+scapy==2.5.0
+paramiko==3.3.1
+psutil==5.9.6
+pyfiglet==0.8.post1
+qrcode==7.4.2
+pyzbar==0.1.9
+geocoder==1.38.1
+phonenumbers==8.13.22
+fake-useragent==1.4.0
+socks5line==1.0.0
+pyinstaller==5.13.0

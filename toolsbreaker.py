@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from colorama import init, Fore, Style
 from termcolor import colored
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 init(autoreset=True)
@@ -62,6 +61,101 @@ def save_tokens(t):
     with open(LICENSE_FILE, 'w') as f:
         json.dump(t, f, indent=2)
 
+# ================== DEVELOPER TOKEN CREATION ==================
+def create_token():
+    if not IS_DEVELOPER:
+        print(colored("[ERROR] Hanya developer yang bisa buat token!", 'red'))
+        return
+    
+    os.system('clear')
+    print(colored("""
+╔═════════════════════════════════════════╗
+║         DEVELOPER TOKEN CREATOR         ║
+╚═════════════════════════════════════════╝
+""", 'magenta', attrs=['bold']))
+    
+    username = input(colored("Username buyer: ", 'yellow')).strip()
+    whoami_buyer = input(colored("whoami buyer: ", 'yellow')).strip()
+    
+    print(colored("Pilih plan:", 'cyan'))
+    plans = [
+        "pemula 1hari",
+        "pemula 1minggu", 
+        "pemula 1bulan",
+        "pro 1hari",
+        "pro 1minggu",
+        "pro 1bulan"
+    ]
+    
+    for i, plan in enumerate(plans, 1):
+        print(colored(f"    {i}. {plan}", 'white'))
+    
+    try:
+        plan_choice = int(input(colored("Pilih [1-6]: ", 'yellow')).strip())
+        selected_plan = plans[plan_choice-1]
+    except:
+        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
+        return
+    
+    # Calculate expiration
+    if "1hari" in selected_plan:
+        expires = datetime.now() + timedelta(days=1)
+    elif "1minggu" in selected_plan:
+        expires = datetime.now() + timedelta(weeks=1)
+    elif "1bulan" in selected_plan:
+        expires = datetime.now() + timedelta(days=30)
+    else:
+        expires = datetime.now() + timedelta(days=1)
+    
+    # Generate token
+    token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    
+    # Save to tokens.json
+    tokens = load_tokens()
+    tokens[username] = {
+        'username': username,
+        'token': token,
+        'whoami': whoami_buyer,
+        'plan': selected_plan,
+        'active': True,
+        'created': datetime.now().isoformat(),
+        'expires': expires.isoformat()
+    }
+    
+    save_tokens(tokens)
+    
+    print(colored(f"\n[SUCCESS] Token berhasil dibuat!", 'green', attrs=['bold']))
+    print(colored(f"   • Username: {username}", 'cyan'))
+    print(colored(f"   • Token: {token}", 'cyan'))
+    print(colored(f"   • whoami: {whoami_buyer}", 'cyan'))
+    print(colored(f"   • Plan: {selected_plan}", 'cyan'))
+    print(colored(f"   • Expires: {expires.strftime('%d %b %Y')}", 'cyan'))
+    
+    input(colored("\nTekan Enter untuk kembali...", 'yellow'))
+
+def view_tokens():
+    if not IS_DEVELOPER:
+        print(colored("[ERROR] Hanya developer yang bisa lihat tokens!", 'red'))
+        return
+    
+    tokens = load_tokens()
+    os.system('clear')
+    print(colored("""
+╔═════════════════════════════════════════╗
+║           TOKENS.JSON VIEWER            ║
+╚═════════════════════════════════════════╝
+""", 'magenta', attrs=['bold']))
+    
+    if not tokens:
+        print(colored("   Tidak ada token tersimpan!", 'yellow'))
+    else:
+        for username, data in tokens.items():
+            status = "AKTIF" if data.get('active', False) else "NONAKTIF"
+            expires = datetime.fromisoformat(data['expires']).strftime('%d %b %Y')
+            print(colored(f"   • {username}: {data['plan']} | {status} | Exp: {expires}", 'white'))
+    
+    input(colored("\nTekan Enter untuk kembali...", 'yellow'))
+
 # ================== VALIDASI TOKEN (ANTI SHARE!) ==================
 def validate_token(username, token):
     t = load_tokens()
@@ -88,6 +182,36 @@ def login():
 ╚═════════════════════════════════════════╝
 """, 'magenta', attrs=['bold']))
 
+    # DEVELOPER MODE - Skip login if developer
+    if IS_DEVELOPER:
+        print(colored("   [DEVELOPER MODE DETECTED!]", 'green', attrs=['bold']))
+        print(colored("   • Logged in as: u0_a197", 'cyan'))
+        print(colored("   • Access: FULL DEVELOPER PRIVILEGES", 'cyan'))
+        print()
+        
+        print(colored("   [DEVELOPER] Login @uo_a197", 'yellow'))
+        print(colored("   Enter...", 'yellow'))
+        print()
+        
+        print(colored("   [1] Masuk Tools", 'white'))
+        print(colored("   [2] Buat Token", 'white')) 
+        print(colored("   [3] Lihat tokens.json", 'white'))
+        
+        choice = input(colored("   Pilih: ", 'yellow')).strip()
+        
+        if choice == "2":
+            create_token()
+            return login()
+        elif choice == "3":
+            view_tokens()
+            return login()
+        elif choice == "1" or choice == "":
+            # Continue as developer with dummy credentials
+            return "developer_u0_a197", "DEVELOPER LIFETIME"
+        else:
+            return login()
+
+    # NORMAL USER LOGIN
     print(colored("   • Gunakan token dari @MrFoock12", 'yellow'))
     print(colored("   • Plan: PEMULA / PRO / MEGA ELITE", 'cyan'))
     print(colored("   • Support: t.me/MrFoock12", 'white'))
@@ -212,8 +336,19 @@ def fitur_10():  # NOTIF
 
 def fitur_11():  # DEVTOOLS
     os.system('clear'); print(colored("\n[11] DEVTOOLS!", 'cyan', attrs=['bold']))
-    if not IS_DEVELOPER: print(colored("   Akses ditolak!", 'red'))
-    else: print(colored("   • Buat Token", 'green'))
+    if not IS_DEVELOPER: 
+        print(colored("   Akses ditolak!", 'red'))
+    else: 
+        print(colored("   [DEVELOPER MENU]", 'green', attrs=['bold']))
+        print(colored("   1. Buat Token Baru", 'white'))
+        print(colored("   2. Lihat Semua Token", 'white'))
+        print(colored("   3. Kembali", 'white'))
+        
+        choice = input(colored("   Pilih [1-3]: ", 'yellow')).strip()
+        if choice == "1":
+            create_token()
+        elif choice == "2":
+            view_tokens()
     input("\nEnter...")
 
 # ================== FITUR 14: PHONE NUMBER INFO ==================
@@ -261,7 +396,7 @@ def fitur_15():
     save_result("mass_banned.log", f"Targets: {total}")
 
     try:
-        options = Options()
+        options = webdriver.ChromeOptions()
         options.add_argument('--headless'); options.add_argument('--no-sandbox')
         driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         print(colored("   [OK] Selenium ready!", 'green'))
