@@ -1,35 +1,9 @@
-# Core dependencies
+requests==2.31.0
 colorama==0.4.6
 termcolor==2.3.0
-selenium==4.15.0
-webdriver-manager==4.0.1
-requests==2.31.0
-urllib3==2.0.7
-
-# Security & Crypto
 cryptography==41.0.7
-pycryptodome==3.19.0
-
-# Web scraping
+pillow==10.1.0
+selenium==4.15.2
+qrcode[pil]==7.4.2
 beautifulsoup4==4.12.2
 lxml==4.9.3
-
-# Image processing
-pillow==10.0.1
-
-# Network tools
-scapy==2.5.0
-paramiko==3.3.1
-
-# System utilities
-psutil==5.9.6
-
-# Text utilities
-pyfiglet==0.8.post1
-qrcode==7.4.2
-
-# Phone number validation
-phonenumbers==8.13.22
-
-# User agent rotation
-fake-useragent==1.4.0

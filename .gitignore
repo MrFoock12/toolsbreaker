@@ -1,0 +1,14 @@
+pycache/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.log
+results/
+tokens.json
+*.encrypted
+*.decrypted
+.DS_Store
+Thumbs.db
