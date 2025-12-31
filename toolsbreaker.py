@@ -1327,7 +1327,7 @@ with open(f"osint_email_{{email.replace('@', '_at_')}}.json", "w") as f:
     json.dump(results, f, indent=2)
 
 print(f"\\n[+] Results saved to osint_email_{{email.replace('@', '_at_')}}.json")
-print(f"[*] Scan completed at {{time.strftime('%Y-%m-%d %H:%M:%S')}}")
+print(f"[*] Scan completed at {{time.strftime('%Y-%m-d %H:%M:%S')}}")
 '''
     
     elif choice == "3":
@@ -2559,7 +2559,7 @@ def main():
     if choice == "10":
         # Custom image
         image_path = input("\nEnter custom image path: ").strip()
-        if not os.path.exists(image_path):
+        if not image_path:
             print("Image not found!")
             return
     elif choice in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
@@ -5366,6 +5366,151 @@ print("\\nSearch links opened in browser!")
     print(colored(f"\n[SEARCH SCRIPT] Generated: {filename}", 'green'))
     print(colored("   Run to automatically open search links", 'cyan'))
     
+    input("\nPress Enter to continue...")
+
+# ================== FITUR 15: MASS BANNED TIKTOK LOCAL ==================
+def fitur_15():
+    os.system('clear'); print(colored("\n[15] MASS BANNED TIKTOK", 'cyan', attrs=['bold']))
+    if not SELENIUM_AVAILABLE:
+        print(colored("   [INFO] Fitur ini membutuhkan: selenium", 'yellow'))
+        print(colored("   Install: pip install selenium webdriver-manager", 'white'))
+        input("\nEnter...")
+        return
+    
+    print(colored("   [LOCAL MODE - TikTok Mass Report Generator]", 'yellow'))
+    
+    tiktok_script = '''#!/usr/bin/env python3
+import time, random, sys, os
+
+print("[TIKTOK MASS REPORT GENERATOR - EDUCATIONAL ONLY]")
+print("\n[!] PERINGATAN:")
+print("   • Penggunaan untuk tujuan jahat adalah ILEGAL")
+print("   • Hanya untuk penelitian keamanan")
+print("   • Gunakan hanya pada akun yang Anda miliki")
+print("   • Bertanggung jawablah!")
+
+print("\nFitur ini akan membuat script untuk:")
+print("   1. Melaporkan video TikTok (automation)")
+print("   2. Generator skrip report massal")
+print("   3. Tools analisis TikTok")
+
+choice = input("\nLanjutkan? (y/n): ").lower()
+if choice != 'y':
+    return
+
+# Generate educational script
+script_content = '''#!/usr/bin/env python3
+"""
+EDUCATIONAL TIKTOK ANALYSIS TOOL
+Hanya untuk tujuan pembelajaran keamanan
+"""
+
+import time, random, json, os, sys
+
+def educational_tiktok_analysis():
+    """Analisis TikTok untuk penelitian keamanan"""
+    print("[TIKTOK SECURITY RESEARCH TOOL]")
+    
+    print("\\nApa yang ingin Anda pelajari?")
+    print("1. Cara kerja sistem report TikTok")
+    print("2. Proteksi terhadap spam report")
+    print("3. Best practices untuk keamanan akun")
+    
+    choice = input("Pilih [1-3]: ").strip()
+    
+    if choice == "1":
+        print("\\n[TIKTOK REPORT SYSTEM - EDUCATIONAL]")
+        print("TikTok menggunakan sistem yang canggih untuk mendeteksi:")
+        print("   • Report spam")
+        print("   • Report palsu")
+        print("   • Koordinasi massal")
+        print("   • Automated behavior")
+        
+        print("\\nSistem keamanan TikTok:")
+        print("   1. Rate limiting: Membatasi report per akun")
+        print("   2. Pattern detection: Mendeteksi pola mencurigakan")
+        print("   3. User reputation: Skor kepercayaan pengguna")
+        print("   4. AI moderation: Kecerdasan buatan untuk review")
+        
+    elif choice == "2":
+        print("\\n[PROTECTIONS AGAINST SPAM REPORT]")
+        print("TikTok melindungi kreator dengan:")
+        print("   • Verifikasi report: Report dicek manual/otomatis")
+        print("   • Appeal system: Kreator bisa banding")
+        print("   • Counter-report: Report palsu bisa dilaporkan")
+        print("   • Legal action: Pelaku bisa ditindak hukum")
+        
+    elif choice == "3":
+        print("\\n[BEST PRACTICES FOR TIKTOK SECURITY]")
+        print("Untuk melindungi akun TikTok Anda:")
+        print("   1. Gunakan password yang kuat")
+        print("   2. Aktifkan 2-factor authentication")
+        print("   3. Hati-hati dengan phishing")
+        print("   4. Laporkan penyalahgunaan")
+        print("   5. Jangan bagikan login details")
+    
+    print("\\n[PENTING]")
+    print("Penyalahgunaan tools ini dapat berakibat:")
+    print("   • Akun TikTok dibanned permanen")
+    print("   • Tindakan hukum")
+    print("   • Denda dan konsekuensi serius")
+
+def generate_report_example():
+    """Generate contoh laporan yang benar"""
+    print("\\n[CARA MELAPORKAN YANG BENAR]")
+    print("\\nContoh report yang valid:")
+    
+    reports = [
+        {
+            "reason": "Kekerasan",
+            "description": "Video mengandung konten kekerasan fisik",
+            "evidence": "Timestamp 0:45-1:10"
+        },
+        {
+            "reason": "Ujaran kebencian",
+            "description": "Komentar mengandung ujaran kebencian terhadap kelompok tertentu",
+            "evidence": "Komentar oleh user @example"
+        },
+        {
+            "reason": "Pelecehan",
+            "description": "Konten melecehkan individu tertentu",
+            "evidence": "Menyebut nama dan foto tanpa izin"
+        }
+    ]
+    
+    for i, report in enumerate(reports, 1):
+        print(f"\\n{i}. {report['reason']}")
+        print(f"   Deskripsi: {report['description']}")
+        print(f"   Bukti: {report['evidence']}")
+    
+    print("\\n[CATATAN]")
+    print("Report hanya untuk konten yang benar-benar melanggar")
+    print("Report palsu adalah pelanggaran berat")
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("TIKTOK SECURITY EDUCATION TOOL")
+    print("=" * 60)
+    
+    educational_tiktok_analysis()
+    generate_report_example()
+    
+    print("\\n" + "=" * 60)
+    print("GUNAKAN DENGAN BIJAK DAN TANGGUNG JAWAB")
+    print("=" * 60)
+'''
+
+    filename = "tiktok_security_education.py"
+    with open(filename, "w", encoding='utf-8') as f:
+        f.write(script_content)
+    
+    print(colored(f"\n[EDUCATIONAL SCRIPT GENERATED]", 'green', attrs=['bold']))
+    print(colored(f"   File: {filename}", 'cyan'))
+    print(colored(f"   Konten: Pendidikan keamanan TikTok", 'white'))
+    print(colored(f"\n   Run: python3 {filename}", 'yellow'))
+    print(colored("   Tujuan: Edukasi tentang sistem keamanan TikTok", 'cyan'))
+    
+    save_result("tiktok.log", "Generated educational TikTok security script")
     input("\nPress Enter to continue...")
 
 # ================== MENU UTAMA ==================
