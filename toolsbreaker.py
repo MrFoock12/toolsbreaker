@@ -387,8 +387,7 @@ class RATServer:
                 if cmd.lower() == 'exit':
                     break
                 elif cmd.lower() == 'help':
-                    help_msg = '''
-Available commands:
+                    help_msg = '''Available commands:
 1. sysinfo - System information
 2. screenshot - Take screenshot
 3. webcam - Capture webcam image
