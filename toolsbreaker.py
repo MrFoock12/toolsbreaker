@@ -58,7 +58,8 @@ def extract_music():
             os.makedirs("/sdcard/Download", exist_ok=True)
             with open(MUSIC_FILE, "wb") as f:
                 f.write(base64.b64decode(MUSIC_BASE64))
-        except: pass
+        except Exception as e:
+            print(f"Error extract music: {e}")
 
 def play_music():
     extract_music()
@@ -66,7 +67,8 @@ def play_music():
         try:
             subprocess.Popen(['termux-media-player', 'play', MUSIC_FILE],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except: pass
+        except Exception as e:
+            pass
 
 # ================== DEVELOPER CHECK ==================
 WHOAMI = subprocess.getoutput("whoami")
@@ -80,8 +82,12 @@ if not os.path.exists(LICENSE_FILE):
     print(colored(f"[AUTO] {LICENSE_FILE} dibuat otomatis!", 'green'))
 
 def load_tokens():
-    try: return json.load(open(LICENSE_FILE))
-    except: return {}
+    try:
+        with open(LICENSE_FILE, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error load tokens: {e}")
+        return {}
 
 def save_tokens(t):
     with open(LICENSE_FILE, 'w') as f:
@@ -892,7 +898,7 @@ def fitur_3():
     threads = input(colored("Threads (default 500): ", 'yellow')).strip() or "500"
     
     ddos_script = f'''#!/usr/bin/env python3
-import socket, threading, time, random, sys, ssl
+import socket, threading, time, random, sys, ssl, os
 
 target = '{target}'
 port = {port}
@@ -1526,9 +1532,9 @@ for platform_name, url, platform_type in social_platforms:
             
             # Check for "not found" or "404" messages
             not_found_indicators = [
-                'page not found', '404', 'not found', 'doesn\'t exist',
+                'page not found', '404', 'not found', 'doesn\\'t exist',
                 'no longer available', 'this page could not be found',
-                'sorry, this page isn\'t available'
+                'sorry, this page isn\\'t available'
             ]
             
             is_found = True
