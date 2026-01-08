@@ -3549,8 +3549,8 @@ def menu_utama(username, plan):
         print_banner(username, plan)
 
         print(colored("╔═════════════════════════════════════════════════════╗", 'red', attrs=['bold']))
-        print(colored("║                 Menu utama v1.0                  ║", 'red', attrs=['bold']))
-        print(colored("║              
+        print(colored("║                 Menu utama v1.0                   ║", 'red', attrs=['bold']))
+        print(colored("║             Tools Breaker - CYBER indonet        ║", 'red', attrs=['bold']))
         print(colored("╚═════════════════════════════════════════════════════╝", 'red', attrs=['bold']))
         
         # Menu options
