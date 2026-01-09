@@ -56,7 +56,7 @@ fi
 
 # Install basic dependencies
 print_status "Installing basic dependencies..."
-pkg install -y python openssh termux-api git wget curl nano vim
+pkg install -y python openssh git wget curl nano vim
 if [ $? -eq 0 ]; then
     print_success "Basic dependencies installed"
 else
@@ -74,19 +74,19 @@ print_status "Creating toolsbreaker directory..."
 mkdir -p ~/toolsbreaker
 cd ~/toolsbreaker || exit
 
-# Download main script
+# Download main script (FIXED URL)
 print_status "Downloading main script..."
 if command -v wget &> /dev/null; then
-    wget -q https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/tools_breaker.py -O tools_breaker.py
+    wget -q https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/toolsbreaker.py -O toolsbreaker.py
 elif command -v curl &> /dev/null; then
-    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/tools_breaker.py -o tools_breaker.py
+    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/toolsbreaker.py -o toolsbreaker.py
 else
     print_error "Neither wget nor curl found. Installing curl..."
     pkg install -y curl
-    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/tools_breaker.py -o tools_breaker.py
+    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/toolsbreaker.py -o toolsbreaker.py
 fi
 
-if [ -f "tools_breaker.py" ]; then
+if [ -f "toolsbreaker.py" ]; then
     print_success "Main script downloaded"
 else
     print_error "Failed to download main script"
@@ -95,11 +95,20 @@ fi
 
 # Download requirements.txt
 print_status "Downloading requirements..."
-if command -v wget &> /dev/null; then
-    wget -q https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/requirements.txt -O requirements.txt
-elif command -v curl &> /dev/null; then
-    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/requirements.txt -o requirements.txt
-fi
+cat > requirements.txt << 'EOF'
+requests==2.31.0
+colorama==0.4.6
+termcolor==2.3.0
+cryptography==41.0.7
+pillow==10.1.0
+selenium==4.15.2
+webdriver-manager==4.0.1
+qrcode[pil]==7.4.2
+beautifulsoup4==4.12.2
+lxml==4.9.3
+phonenumbers==8.13.22
+EOF
+print_success "Requirements file created"
 
 # Download ua.txt (User-Agents)
 print_status "Downloading User-Agents file..."
@@ -119,37 +128,28 @@ print_success "User-Agents file created"
 
 # Install Python dependencies
 print_status "Installing Python dependencies..."
-if [ -f "requirements.txt" ]; then
-    pip install --upgrade pip
-    pip install -r requirements.txt
-else
-    # Install default dependencies if requirements.txt not found
-    print_warning "requirements.txt not found, installing default dependencies..."
-    pip install --upgrade pip
-    pip install requests colorama termcolor cryptography pillow selenium qrcode[pil]
-fi
+pip install --upgrade pip
+pip install -r requirements.txt
 
 # Additional dependencies for Termux
 print_status "Installing Termux-specific dependencies..."
-pkg install -y proot-distro
-pkg install -y libxml2 libxslt libjpeg-turbo libpng
-pip install lxml
+pkg install -y proot-distro libxml2 libxslt libjpeg-turbo libpng
 
 # Make script executable
 print_status "Making script executable..."
-chmod +x tools_breaker.py
+chmod +x toolsbreaker.py
 
 # Create alias for easy access
 print_status "Creating alias..."
-echo "alias toolsbreaker='cd ~/toolsbreaker && python tools_breaker.py'" >> ~/.bashrc
-echo "alias tb='cd ~/toolsbreaker && python tools_breaker.py'" >> ~/.bashrc
+echo "alias toolsbreaker='cd ~/toolsbreaker && python toolsbreaker.py'" >> ~/.bashrc
+echo "alias tb='cd ~/toolsbreaker && python toolsbreaker.py'" >> ~/.bashrc
 
 # Create launcher script
 print_status "Creating launcher script..."
 cat > ~/../usr/bin/toolsbreaker << 'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 cd ~/toolsbreaker
-python tools_breaker.py
+python toolsbreaker.py
 EOF
 chmod +x ~/../usr/bin/toolsbreaker
 
@@ -160,16 +160,16 @@ cat > update_toolsbreaker.sh << 'EOF'
 cd ~/toolsbreaker
 echo "Updating Tools Breaker..."
 if command -v wget &> /dev/null; then
-    wget -q https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/tools_breaker.py -O tools_breaker_new.py
+    wget -q https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/toolsbreaker.py -O toolsbreaker_new.py
 elif command -v curl &> /dev/null; then
-    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/tools_breaker.py -o tools_breaker_new.py
+    curl -s -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/toolsbreaker.py -o toolsbreaker_new.py
 fi
 
-if [ -f "tools_breaker_new.py" ]; then
-    mv tools_breaker.py tools_breaker_backup.py
-    mv tools_breaker_new.py tools_breaker.py
-    chmod +x tools_breaker.py
-    echo "Update successful! Backup saved as tools_breaker_backup.py"
+if [ -f "toolsbreaker_new.py" ]; then
+    cp toolsbreaker.py toolsbreaker_backup.py
+    mv toolsbreaker_new.py toolsbreaker.py
+    chmod +x toolsbreaker.py
+    echo "Update successful! Backup saved as toolsbreaker_backup.py"
 else
     echo "Update failed!"
 fi
@@ -188,26 +188,22 @@ cat > README.txt << 'EOF'
 
 📍 Location: ~/toolsbreaker/
 📁 Files:
-  - tools_breaker.py    (Main script)
+  - toolsbreaker.py      (Main script)
   - requirements.txt    (Python dependencies)
   - ua.txt             (User-Agents)
   - update_toolsbreaker.sh (Update script)
 
 🚀 HOW TO USE:
-1. Run: toolsbreaker
+1. Restart Termux or run: source ~/.bashrc
+2. Run: toolsbreaker
    or: tb
-   or: cd ~/toolsbreaker && python tools_breaker.py
-
-2. First time will create tokens.json automatically
-
-3. Login with token from @MrFoock12
+   or: cd ~/toolsbreaker && python toolsbreaker.py
 
 🔄 UPDATE:
 Run: ./update_toolsbreaker.sh
 
 📞 SUPPORT:
-Telegram: @MrFoock12
-WhatsApp: +62895622994489
+Telegram: @foock2
 
 ⚠️ DISCLAIMER:
 For educational purposes only.
@@ -222,7 +218,7 @@ echo -e "${GREEN}╚════════════════════
 echo ""
 echo -e "${CYAN}📦 Installation Summary:${NC}"
 echo -e "  ${GREEN}✓${NC} Tools installed in: ~/toolsbreaker/"
-echo -e "  ${GREEN}✓${NC} Main script: tools_breaker.py"
+echo -e "  ${GREEN}✓${NC} Main script: toolsbreaker.py"
 echo -e "  ${GREEN}✓${NC} Aliases created: 'toolsbreaker' and 'tb'"
 echo -e "  ${GREEN}✓${NC} System command: toolsbreaker"
 echo -e "  ${GREEN}✓${NC} Update script: update_toolsbreaker.sh"
@@ -230,16 +226,16 @@ echo ""
 echo -e "${YELLOW}🚀 Quick Start:${NC}"
 echo -e "  1. Restart Termux or run: ${CYAN}source ~/.bashrc${NC}"
 echo -e "  2. Run: ${CYAN}toolsbreaker${NC}"
-echo -e "  3. Or: ${CYAN}cd ~/toolsbreaker && python tools_breaker.py${NC}"
+echo -e "  3. Or: ${CYAN}cd ~/toolsbreaker && python toolsbreaker.py${NC}"
 echo ""
 echo -e "${YELLOW}📞 Support:${NC}"
-echo -e "  Telegram: ${CYAN}@MrFoock12${NC}"
-echo -e "  WhatsApp: ${CYAN}+62895622994489${NC}"
+echo -e "  Telegram: ${CYAN}@foock2${NC}"
 echo ""
 echo -e "${RED}⚠️  Disclaimer:${NC}"
 echo -e "  For educational purposes only."
 echo -e "  Use responsibly and legally."
 echo ""
 
-# Restart bash to load aliases
-exec bash
+# Load aliases without closing terminal
+source ~/.bashrc
+echo -e "${GREEN}[+] Aliases loaded. Type 'toolsbreaker' to start!${NC}"
