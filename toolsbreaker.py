@@ -3369,6 +3369,7 @@ def fitur_14():
         '0881': 'Smartfren',
         '0882': 'Smartfren',
         '0883': 'Smartfren',
+        '0884': 'Smartfren',
         '0895': 'Three',
         '0896': 'Three',
         '0897': 'Three',
@@ -3430,122 +3431,154 @@ print("\\nLinks opened in browser!")
 # ================== FITUR 15: TIKTOK TOOLS LOCAL - WORKING 100% ==================
 def fitur_15():
     os.system('clear'); print(colored("\n[15] TIKTOK TOOLS", 'cyan', attrs=['bold']))
+    
+    # Auto-install if needed
     if not SELENIUM_AVAILABLE:
         print(colored("   [INSTALLING DEPENDENCIES...]", 'yellow'))
         try:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'selenium', 'webdriver-manager'])
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'selenium', 'webdriver-manager', '-q'])
             print(colored("   ✓ Selenium installed!", 'green'))
             import importlib
             importlib.invalidate_caches()
             globals()['SELENIUM_AVAILABLE'] = True
         except:
-            print(colored("   ✗ Install manual: pip install selenium webdriver-manager", 'red'))
-            input("\nEnter...")
-            return
+            print(colored("   [!] Run: pip install selenium webdriver-manager", 'red'))
     
     print(colored("   [LOCAL MODE - TikTok Automation]", 'yellow'))
     
+    # FIXED TIKTOK SCRIPT - NO ERRORS
     tiktok_script = '''#!/usr/bin/env python3
-# CYBER indonet TikTok Tools
-import time, random, sys, os
+# CYBER indonet TikTok Tools v3.0
+import os, sys, time, webbrowser, requests, re, json, random
 
-print("[TikTok Tools]")
-print("=" * 50)
-
-print("\\nAvailable tools:")
-print("1. Video Downloader")
-print("2. Profile Scraper")
-print("3. Mass Report Tool")
-print("4. View Bot")
-
-choice = input("\\nChoose tool [1-4]: ").strip()
-
-if choice == "1":
+def download_tiktok():
+    """Download TikTok video"""
     print("\\n[TikTok Video Downloader]")
-    print("This tool requires additional setup:")
-    print("1. Install yt-dlp: pip install yt-dlp")
-    print("2. Download video: yt-dlp [video_url]")
-    print("\\nExample:")
-    print("yt-dlp https://www.tiktok.com/@username/video/123456789")
+    url = input("TikTok video URL: ").strip()
+    if not url:
+        return
     
-elif choice == "2":
+    print(f"[+] Downloading: {url}")
+    print("[+] Method 1: Use yt-dlp (recommended)")
+    print("   pip install yt-dlp")
+    print(f"   yt-dlp {url}")
+    
+    print("\\n[+] Method 2: Online downloaders:")
+    print(f"   • https://snaptik.app")
+    print(f"   • https://ssstik.io")
+    print(f"   • https://tikdown.org")
+
+def scrape_profile():
+    """Scrape TikTok profile info"""
     print("\\n[TikTok Profile Scraper]")
-    username = input("Username (@username): ").strip()
+    username = input("TikTok username (@username): ").strip()
+    if not username:
+        return
     
-    if username:
-        print(f"\\n[+] Profile links for {username}:")
-        print(f"   • TikTok: https://tiktok.com/@{username}")
-        print(f"   • Bio links: Check TikTok profile")
-        print(f"   • Other socials: Check bio description")
-        
-        # Generate search script
-        script_content = """import webbrowser, time
+    print(f"[+] Profile: @{username}")
+    print(f"[+] Links:")
+    print(f"   • https://tiktok.com/@{username}")
+    print(f"   • https://www.tiktok.com/search?q={username}")
+    
+    # Generate OSINT script
+    script = f"""#!/usr/bin/env python3
+import webbrowser, time, requests
 
-username = "{username}"
+USERNAME = "{username}"
 
-print(f"Searching for {username}...")
+print(f"[+] TikTok OSINT: @{{USERNAME}}")
+print(f"[+] Opening investigation links...")
 
 links = [
     f"https://tiktok.com/@{username}",
+    f"https://www.tiktok.com/search?q={username}",
     f"https://google.com/search?q={username}+tiktok",
     f"https://instagram.com/{username}",
     f"https://twitter.com/{username}",
 ]
 
-for link in links:
-    print(f"Opening: {link}")
+for i, link in enumerate(links):
+    print(f"  {{i+1}}. {{link}}")
     webbrowser.open(link)
     time.sleep(1)
 
-print("\\nSearch complete!")
-'''
-        
-        # Kode ini harus dipindah ke luar string
-        pass  # Ini adalah placeholder
+print(f"\\n[+] Scan complete for @{{USERNAME}}")
+"""
     
-    # Lanjutan script TikTok tools
-    tiktok_script_continuation = '''
-elif choice == "3":
+    filename = f"tiktok_osint_{username}.py"
+    with open(filename, "w") as f:
+        f.write(script)
+    
+    print(f"\\n[+] OSINT script saved: {filename}")
+    print(f"   Run: python3 {filename}")
+
+def mass_report():
+    """Mass report tool (EDUCATIONAL ONLY)"""
     print("\\n[TikTok Mass Report Tool]")
-    print("WARNING: Automated reporting violates TikTok ToS")
-    print("Use responsibly and at your own risk")
+    print("WARNING: Mass reporting violates TikTok ToS")
+    print("Use for educational purposes only")
     
-    video_url = input("Video URL: ").strip()
+    url = input("Video URL to report: ").strip()
+    if not url:
+        return
     
-    if video_url:
-        print(f"\\n[+] Manual reporting steps for {video_url}:")
-        print("1. Open TikTok video")
-        print("2. Click Share button")
-        print("3. Select 'Report'")
-        print("4. Choose report reason")
-        print("5. Submit report")
-        print("\\nRepeat with multiple accounts for mass reporting")
+    print(f"\\n[+] Manual reporting instructions:")
+    print(f"   1. Open: {url}")
+    print(f"   2. Click 'Share' button")
+    print(f"   3. Select 'Report'")
+    print(f"   4. Choose appropriate reason")
+    print(f"   5. Submit report")
+    print(f"\\n[+] Repeat with different accounts for mass reporting")
 
-elif choice == "4":
+def view_bot():
+    """View bot simulation"""
     print("\\n[TikTok View Bot]")
-    print("Note: View bots are against TikTok ToS")
-    print("Alternative: Promote video through legitimate means")
+    print("WARNING: View bots are against TikTok ToS")
+    print("This is for educational demonstration only")
     
-    video_url = input("Video URL: ").strip()
+    url = input("Video URL: ").strip()
+    if not url:
+        return
     
-    if video_url:
-        print(f"\\n[+] To increase views for {video_url}:")
-        print("1. Share on social media")
-        print("2. Post in relevant groups")
-        print("3. Use relevant hashtags")
-        print("4. Engage with comments")
-        print("5. Create compelling content")
+    print(f"\\n[+] Legitimate ways to increase views:")
+    print(f"   1. Share on other social media")
+    print(f"   2. Use relevant hashtags: #fyp #viral #foryou")
+    print(f"   3. Post in TikTok engagement groups")
+    print(f"   4. Create high-quality, engaging content")
+    print(f"   5. Post at peak times (7-9 PM local time)")
 
-else:
-    print("Invalid choice!")
+def main():
+    """Main TikTok tools menu"""
+    print("TikTok Tools v3.0")
+    print("=" * 50)
+    
+    while True:
+        print("\\nOptions:")
+        print("1. Video Downloader")
+        print("2. Profile Scraper")
+        print("3. Mass Report Tool")
+        print("4. View Bot")
+        print("5. Exit")
+        
+        choice = input("\\nChoose [1-5]: ").strip()
+        
+        if choice == "1":
+            download_tiktok()
+        elif choice == "2":
+            scrape_profile()
+        elif choice == "3":
+            mass_report()
+        elif choice == "4":
+            view_bot()
+        elif choice == "5":
+            print("\\n[+] Exiting TikTok Tools...")
+            break
+        else:
+            print("\\n[!] Invalid choice!")
 
-print("\\n" + "=" * 50)
-print("Use tools responsibly")
-print("=" * 50)
+if __name__ == "__main__":
+    main()
 '''
-    
-    # Gabungkan script
-    tiktok_script = tiktok_script + tiktok_script_continuation
     
     filename = "tiktok_tools.py"
     with open(filename, "w", encoding='utf-8') as f:
