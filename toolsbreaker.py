@@ -472,7 +472,7 @@ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     
     def start(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKet, socket.SO_REUSEADDR, 1)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((HOST, PORT))
         server.listen(5)
         
@@ -3500,13 +3500,11 @@ for link in links:
 print("\\nSearch complete!")
 '''
         
-        filename = f"tiktok_search_{username}.py"
-        with open(filename, 'w') as f:
-            f.write(script_content.format(username=username))
-        
-        print(f"\\n[+] Search script saved: {filename}")
-        print(f"   Run: python3 {filename}")
-
+        # Kode ini harus dipindah ke luar string
+        pass  # Ini adalah placeholder
+    
+    # Lanjutan script TikTok tools
+    tiktok_script_continuation = '''
 elif choice == "3":
     print("\\n[TikTok Mass Report Tool]")
     print("WARNING: Automated reporting violates TikTok ToS")
@@ -3545,6 +3543,9 @@ print("\\n" + "=" * 50)
 print("Use tools responsibly")
 print("=" * 50)
 '''
+    
+    # Gabungkan script
+    tiktok_script = tiktok_script + tiktok_script_continuation
     
     filename = "tiktok_tools.py"
     with open(filename, "w", encoding='utf-8') as f:
