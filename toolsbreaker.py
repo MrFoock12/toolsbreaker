@@ -2994,7 +2994,7 @@ def menu_utama(username, plan):
         ]
         
         for left, right in menu_items:
-            print(colored(f"║ {left:<25}                   {right:<25} ║", 'white'))
+        print(colored(f"║ {left:<25}               {right:<25} ║", 'white'))
         print(colored("╚════════════════════════════════════════════════════════╝", 'blue'))
 
         ch = input(colored("\nPilih [0-23]: ", 'red')).strip()
