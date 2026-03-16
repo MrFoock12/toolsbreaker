@@ -2987,7 +2987,7 @@ def menu_utama(username, plan):
             ("11. TRACK NIK", "25. SPAM ALL"),
             ("13. WIFI ATTACK", "26. CHECKER ALL"),
             ("15. WORM GPT", "27. HACK AKUN GAME"),
-            ("16. REPORT TIKTOK", "28. DOX GK AKURAT),
+            ("16. REPORT TIKTOK", "28. DOX GK AKURAT"),
             ("17. DOX AKURAT", "29. BUG WA"),
             ("18. BAN WA", "30. UNBAN WA"),
             ("19. BAN TIKTOK", "0. EXIT")
