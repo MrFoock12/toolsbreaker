@@ -64,14 +64,10 @@ init(autoreset=True)
 # ================== CONFIG LOCAL ONLY ==================
 RESULTS_DIR = "results"
 LICENSE_FILE = 'tokens.json'
-GITHUB_REPO = "MrFoock12/tools-breaker"
-SCRIPT_NAME = "tools_breaker.py"
-BACKUP_NAME = "tools_breaker_backup.py"
+GITHUB_REPO = "MrFoock12/toolsbreaker"
+SCRIPT_NAME = "toolsbreaker.py"
 UA_FILE = "ua.txt"
 os.makedirs(RESULTS_DIR, exist_ok=True)
-
-# TANPA VPS - semua data local
-LOCAL_MODE = True
 
 # ================== USER INFO ==================
 CURRENT_TIME = datetime.now().strftime("%d %b %Y - %I:%M %p WIB")
@@ -335,16 +331,16 @@ def login():
     if IS_DEVELOPER:
         print(colored("   [DEVELOPER MODE DETECTED!]", 'green', attrs=['bold']))
         print(colored("   • Logged in as: u0_a197", 'cyan'))
-        print(colored("   • Access: FULL DEVELOPER PRIVILEGES", 'cyan'))
+        print(colored("   • Access: FULL DEVELOPER ONLY", 'white', attrs=['bold']))
         print()
         
         print(colored("   [DEVELOPER] Login @uo_a197", 'yellow'))
         print(colored("   Enter...", 'yellow'))
         print()
         
-        print(colored("   [1] Masuk Tools", 'white'))
-        print(colored("   [2] Buat Token", 'white')) 
-        print(colored("   [3] Lihat tokens.json", 'white'))
+        print(colored("   [1] Masuk Tools", 'blue'))
+        print(colored("   [2] Buat Token", 'cyan')) 
+        print(colored("   [3] Lihat tokens.json", 'cyan'))
         
         choice = input(colored("   Pilih: ", 'yellow')).strip()
         
@@ -356,7 +352,7 @@ def login():
             return login()
         elif choice == "1" or choice == "":
             # Continue as developer with dummy credentials
-            return "developer_u0_a197", "DEVELOPER LIFETIME"
+            return "developer_u0_a197", "DEVELOPER ONLY"
         else:
             return login()
 
@@ -2984,7 +2980,7 @@ def menu_utama(username, plan):
             ("5. DASHBOARD", "17. DEVTOOLS"),
             ("6. TRACK NIK", "18. SPAM ALL"),
             ("7. WIFI ATTACK", "19. CHECKER ALL"),
-            ("8. WORM GPT", "20. HACK AKUN GAME"),
+            ("8. WORM GPT", "20. AMBIL AKUN GAME"),
             ("9. REPORT TIKTOK", "21. DOX GK AKURAT"),
             ("10. DOX AKURAT", "22. BUG WA"),
             ("11. BAN WA", "23. UNBAN WA"),
