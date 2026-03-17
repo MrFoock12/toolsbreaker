@@ -17,4 +17,4 @@ Tools hacking all-in-one untuk Termux (Android).
 
 ## 🔧 Installation
 ```bash
-pkg update -y && pkg upgrade -y && pkg install python openssh termux-api -y && termux-setup-storage && mkdir -p ~/toolsbreaker && cd ~/toolsbreaker && curl -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/install.sh | bash
+pkg update -y && pkg upgrade -y && pkg install python3 openssh termux-api -y && termux-setup-storage && pkg install git && pip install selenium && mkdir -p ~/toolsbreaker && cd ~/toolsbreaker && curl -L https://raw.githubusercontent.com/MrFoock12/toolsbreaker/main/python3 toolsbreaker.py
