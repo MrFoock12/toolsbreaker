@@ -331,7 +331,7 @@ def login():
     if IS_DEVELOPER:
         print(colored("   [DEVELOPER MODE DETECTED!]", 'green', attrs=['bold']))
         print(colored("   • Logged in as: u0_a197", 'cyan'))
-        print(colored("   • Access: FULL DEVELOPER ONLY", 'white', attrs=['bold']))
+        print(colored("   • Access: FULL DEVELOPER ONLY", 'cyan', attrs=['bold']))
         print()
         
         print(colored("   [DEVELOPER] Login @uo_a197", 'yellow'))
@@ -339,8 +339,8 @@ def login():
         print()
         
         print(colored("   [1] Masuk Tools", 'blue'))
-        print(colored("   [2] Buat Token", 'cyan')) 
-        print(colored("   [3] Lihat tokens.json", 'cyan'))
+        print(colored("   [2] Buat Token", 'white')) 
+        print(colored("   [3] Lihat tokens.json", 'white'))
         
         choice = input(colored("   Pilih: ", 'yellow')).strip()
         
@@ -402,7 +402,7 @@ def print_banner(uid, plan):
        ║         TOOLS BREAKER v1.0         ║
        ╚════════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
-Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", None))
+Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", cyan ))
 
 # ================== SAVE LOCAL ONLY ==================
 def save_result(filename, content):
