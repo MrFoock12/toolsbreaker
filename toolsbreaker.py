@@ -402,7 +402,7 @@ def print_banner(uid, plan):
        ║         TOOLS BREAKER v1.0         ║
        ╚════════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
-Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", cyan ))
+Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", none ))
 
 # ================== SAVE LOCAL ONLY ==================
 def save_result(filename, content):
