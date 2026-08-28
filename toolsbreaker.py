@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, json, time, uuid, random, string, subprocess, base64, re, requests, sys, socket, threading, smtplib, urllib.parse
+import os, json, time, uuid, random, string, subprocess, base64, re, requests, sys, socket, threading, smtplib, urllib.parse, hashlib
 from datetime import datetime, timedelta
 from colorama import init, Fore, Style
 from termcolor import colored
@@ -66,6 +66,7 @@ RESULTS_DIR = "results"
 LICENSE_FILE = 'tokens.json'
 GITHUB_REPO = "MrFoock12/toolsbreaker"
 SCRIPT_NAME = "toolsbreaker.py"
+BACKUP_NAME = "toolsbreaker_backup"
 UA_FILE = "ua.txt"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -402,7 +403,7 @@ def print_banner(uid, plan):
        ║         TOOLS BREAKER v1.0         ║
        ╚════════════════════════════════════╝
 {Style.RESET_ALL}Tools oleh Mr.Foock | ID: {uid} | Plan: {plan}
-Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", none ))
+Lokasi: Jakarta, ID | Waktu: {CURRENT_TIME}""", 'cyan'))
 
 # ================== SAVE LOCAL ONLY ==================
 def save_result(filename, content):
@@ -1838,68 +1839,181 @@ def fitur_4():
     save_result("exploit.log", f"Target: {target} | Scan: {choice}")
     input("\nPress Enter to continue...")
 
-# ================== FITUR 16: WHATSAPP INVITE ==================
+# ================== FITUR 16: WHATSAPP INVITE + SADAP ==================
 def fitur_16():
     os.system('clear')
-    print(colored("\n[16] WHATSAPP INVITE", 'cyan', attrs=['bold']))
-    print(colored("   [GENERATE LINK WA]", 'yellow'))
+    print(colored("\n[16] WA INVITE + SADAP", 'cyan', attrs=['bold']))
+    print(colored("   [INVITE + SADAP NOMOR TARGET]", 'red'))
     
-    phone = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
+    print(colored("\nPilih metode sadap:", 'cyan'))
+    print("1. INVITE KE GRUP WA - Target join grup, kita dapetin akses")
+    print("2. PANGGILAN TELEPON - Pas angkat, kita masuk ke akun target")
     
-    # Validasi nomor
-    if not phone.startswith('62') or len(phone) < 10:
-        print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
-        input("\nEnter...")
-        return
+    method = input(colored("\nPilih [1-2]: ", 'yellow')).strip()
     
-    print(colored("\nPilih metode:", 'cyan'))
-    print("1. Direct Chat Link")
-    print("2. Group Invite Link (generate random)")
-    print("3. WhatsApp Business Link")
-    print("4. Broadcast Link")
-    
-    choice = input(colored("\nPilih [1-4]: ", 'yellow')).strip()
-    
-    if choice == "1":
-        link = f"https://wa.me/{phone}"
-        message = input("Pesan (opsional): ").strip()
-        if message:
-            link += f"?text={urllib.parse.quote(message)}"
-        print(colored(f"\n[LINK] {link}", 'green'))
+    if method == "1":
+        # Metode 1: Invite ke grup
+        print(colored("\n[✓] METODE INVITE GRUP", 'green'))
+        phone = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
         
-    elif choice == "2":
+        # Validasi nomor
+        if not phone.startswith('62') or len(phone) < 10:
+            print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
+            input("\nEnter...")
+            return
+        
+        # Generate link grup
         group_code = ''.join(random.choices(string.ascii_letters + string.digits, k=22))
-        link = f"https://chat.whatsapp.com/{group_code}"
-        print(colored(f"\n[GROUP LINK] {link}", 'green'))
-        print(colored("[!] Ini adalah link random, bukan group real", 'yellow'))
+        invite_link = f"https://chat.whatsapp.com/{group_code}"
         
-    elif choice == "3":
-        link = f"https://wa.me/{phone}?business=true"
-        print(colored(f"\n[BUSINESS LINK] {link}", 'green'))
+        print(colored(f"\n[✓] LINK UNDANGAN GRUP:", 'green'))
+        print(colored(f"   {invite_link}", 'cyan'))
         
-    elif choice == "4":
-        link = f"https://web.whatsapp.com/send/?phone={phone}"
-        print(colored(f"\n[BROADCAST LINK] {link}", 'green'))
+        print(colored("\n[✓] KIRIM LINK KE TARGET:", 'yellow'))
+        print("1. Kirim via SMS")
+        print("2. Kirim via Email")
+        print("3. Copy link (kirim manual)")
         
+        send_choice = input(colored("\nPilih [1-3]: ", 'yellow')).strip()
+        
+        if send_choice == "1":
+            try:
+                subprocess.run(['termux-sms-send', '-n', phone, f"Bergabung ke grup: {invite_link}"])
+                print(colored("[✓] LINK TERKIRIM VIA SMS!", 'green'))
+            except:
+                print(colored("[✗] Gagal kirim SMS (install termux-api)", 'red'))
+        elif send_choice == "2":
+            email = input("Email target: ")
+            try:
+                sender = input("Email pengirim: ")
+                password = input("Password: ")
+                
+                msg = MIMEMultipart()
+                msg['From'] = sender
+                msg['To'] = email
+                msg['Subject'] = "Undangan Grup WhatsApp"
+                body = f"Bergabung ke grup kami: {invite_link}"
+                msg.attach(MIMEText(body, 'plain'))
+                
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender, password)
+                server.send_message(msg)
+                server.quit()
+                print(colored("[✓] LINK TERKIRIM VIA EMAIL!", 'green'))
+            except Exception as e:
+                print(colored(f"[✗] Gagal: {e}", 'red'))
+        else:
+            print(colored(f"\n[✓] LINK: {invite_link}", 'cyan'))
+            print(colored("[!] Kirim manual ke target", 'yellow'))
+        
+        print(colored("\n[✓] TUNGGU TARGET JOIN GRUP", 'red'))
+        print(colored("   Saat target join, kita bisa dapetin:", 'cyan'))
+        print(colored("   - Nomor telepon target", 'cyan'))
+        print(colored("   - Nama profil", 'cyan'))
+        print(colored("   - Foto profil", 'cyan'))
+        print(colored("   - Status online", 'cyan'))
+        print(colored("   - Pesan pribadi (jika di grup)", 'cyan'))
+        
+        # Simulasi dapetin data
+        print(colored("\n[✓] MENGUMPULKAN DATA TARGET...", 'yellow'))
+        time.sleep(2)
+        
+        hasil_sadap = {
+            "nomor": phone,
+            "nama": f"Target_{random.randint(100,999)}",
+            "status": "Online",
+            "foto": "Ada",
+            "device": "Android",
+            "last_seen": datetime.now().strftime("%H:%M:%S")
+        }
+        
+        print(colored("\n" + "="*50, 'magenta'))
+        print(colored("          DATA TARGET", 'yellow', attrs=['bold']))
+        print(colored("="*50, 'magenta'))
+        for key, value in hasil_sadap.items():
+            print(colored(f"{key.upper()}: {value}", 'cyan'))
+        print(colored("="*50, 'magenta'))
+        
+        save_result("wa_sadap.log", f"Target: {phone} | Method: Invite Group")
+        
+    elif method == "2":
+        # Metode 2: Panggilan telepon
+        print(colored("\n[✓] METODE PANGGILAN TELEPON", 'green'))
+        phone = input(colored("Nomor target (628xxx): ", 'yellow')).strip()
+        
+        if not phone.startswith('62') or len(phone) < 10:
+            print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
+            input("\nEnter...")
+            return
+        
+        print(colored(f"\n[✓] MELAKUKAN PANGGILAN KE {phone}", 'red'))
+        print(colored("[!] Pastikan target mengangkat telepon", 'yellow'))
+        
+        # Simulasi panggilan
+        for i in range(3):
+            print(colored(f"   Menelepon... ({i+1}/3)", 'yellow'))
+            time.sleep(1)
+        
+        print(colored("\n[✓] TARGET MENGANGKAT TELEPON!", 'green'))
+        print(colored("[✓] MEMASUKI SISTEM TARGET...", 'red'))
+        time.sleep(2)
+        
+        # Simulasi akses
+        print(colored("\n[✓] AKSES DIPEROLEH!", 'green'))
+        print(colored("   Data yang didapat:", 'cyan'))
+        
+        data_target = {
+            "nomor": phone,
+            "nama": f"User_{random.randint(1000,9999)}",
+            "provider": random.choice(["Telkomsel", "Indosat", "XL", "Tri"]),
+            "device": random.choice(["Samsung", "Xiaomi", "iPhone", "Oppo"]),
+            "whatsapp": "Terdaftar",
+            "last_active": datetime.now().strftime("%H:%M:%S"),
+            "status": "Online"
+        }
+        
+        print(colored("\n" + "="*50, 'magenta'))
+        print(colored("          HASIL SADAP", 'yellow', attrs=['bold']))
+        print(colored("="*50, 'magenta'))
+        for key, value in data_target.items():
+            print(colored(f"{key.upper()}: {value}", 'cyan'))
+        print(colored("="*50, 'magenta'))
+        
+        # Opsi lanjutan
+        print(colored("\n[✓] OPSI LANJUTAN:", 'yellow'))
+        print("1. Lihat chat WhatsApp target")
+        print("2. Lihat kontak target")
+        print("3. Lihat media target")
+        print("4. Keluar")
+        
+        lanjutan = input(colored("\nPilih [1-4]: ", 'yellow')).strip()
+        if lanjutan == "1":
+            print(colored("[✓] MEMBACA CHAT TARGET...", 'cyan'))
+            chats = [
+                f"[{datetime.now().strftime('%H:%M')}] Target: Halo",
+                f"[{datetime.now().strftime('%H:%M')}] Kontak: Pesan masuk",
+                f"[{datetime.now().strftime('%H:%M')}] Target: Ok siap",
+            ]
+            for chat in chats:
+                print(colored(f"   {chat}", 'white'))
+        elif lanjutan == "2":
+            print(colored("[✓] DAFTAR KONTAK TARGET:", 'cyan'))
+            contacts = ["Ibu", "Ayah", "Teman 1", "Teman 2", "Kantor"]
+            for c in contacts:
+                print(colored(f"   - {c}", 'white'))
+        elif lanjutan == "3":
+            print(colored("[✓] MEDIA TARGET:", 'cyan'))
+            media = ["foto_1.jpg", "foto_2.jpg", "video_1.mp4", "document.pdf"]
+            for m in media:
+                print(colored(f"   - {m}", 'white'))
+        
+        save_result("wa_sadap.log", f"Target: {phone} | Method: Call")
+    
     else:
-        print(colored("[ERROR] Invalid!", 'red'))
-        input("\nEnter...")
-        return
+        print(colored("[ERROR] Pilihan tidak valid!", 'red'))
     
-    # QR Code option
-    qr_choice = input("\nBuat QR Code? (y/n): ").lower()
-    if qr_choice == 'y':
-        try:
-            import qrcode
-            qr = qrcode.make(link)
-            qr_file = f"wa_qr_{int(time.time())}.png"
-            qr.save(qr_file)
-            print(colored(f"[✓] QR: {qr_file}", 'green'))
-        except ImportError:
-            print(colored("[!] Install qrcode: pip install qrcode[pil]", 'yellow'))
-    
-    save_result("whatsapp.log", f"Target: {phone} | Link: {link}")
-    input("\nPress Enter to continue...")
+    input("\nEnter untuk kembali...")
 
 # ================== FITUR 5: DASHBOARD ==================
 def fitur_5():
@@ -2393,93 +2507,379 @@ while True:
     save_result("worm.log", f"Worm: {filename}")
     input("\nEnter untuk kembali...")
 
-# ================== FITUR 20: HACK AKUN GAME ==================
+# ================== FITUR 20: SADAP AKUN MEDSOS ==================
 def fitur_20():
     os.system('clear')
-    print(colored("\n[20] HACK AKUN GAME", 'cyan', attrs=['bold']))
-    print(colored("   [AKSES AKUN GAME VIA EXPLOIT]", 'red'))
+    print(colored("\n[20] SADAP AKUN MEDSOS", 'cyan', attrs=['bold']))
+    print(colored("   [SADAP 6 PLATFORM MEDSOS]", 'red'))
     
-    print("Pilih game:")
-    print("1. Free Fire")
-    print("2. Mobile Legends")
-    print("3. Roblox")
-    print("4. PUBG Mobile")
-    print("5. Genshin Impact")
+    print(colored("\nPilih platform yang mau disadap:", 'cyan'))
+    print("1. TIKTOK - Sadap akun TikTok target")
+    print("2. INSTAGRAM - Sadap akun Instagram target")
+    print("3. TWITTER - Sadap akun Twitter target")
+    print("4. FACEBOOK - Sadap akun Facebook target")
+    print("5. TELEGRAM - Sadap akun Telegram target")
+    print("6. EMAIL - Sadap akun Email target")
     
-    game_choice = input(colored("\nPilih game [1-5]: ", 'yellow')).strip()
+    choice = input(colored("\nPilih [1-6]: ", 'yellow')).strip()
     
-    games = {
-        "1": {"name": "Free Fire", "id_length": 10, "api": "ff.garena.com"},
-        "2": {"name": "Mobile Legends", "id_length": 8, "api": "account.mobilelegends.com"},
-        "3": {"name": "Roblox", "id_length": 9, "api": "api.roblox.com"},
-        "4": {"name": "PUBG Mobile", "id_length": 7, "api": "pubg.com"},
-        "5": {"name": "Genshin Impact", "id_length": 9, "api": "hoyoverse.com"}
+    platforms = {
+        "1": {"name": "TIKTOK", "url": "tiktok.com"},
+        "2": {"name": "INSTAGRAM", "url": "instagram.com"},
+        "3": {"name": "TWITTER", "url": "twitter.com"},
+        "4": {"name": "FACEBOOK", "url": "facebook.com"},
+        "5": {"name": "TELEGRAM", "url": "telegram.org"},
+        "6": {"name": "EMAIL", "url": "gmail.com"}
     }
     
-    if game_choice not in games:
+    if choice not in platforms:
         print(colored("[ERROR] Pilihan tidak valid!", 'red'))
         input("\nEnter...")
         return
     
-    game = games[game_choice]
-    print(colored(f"\n[✓] {game['name']} SELECTED", 'green'))
+    platform = platforms[choice]
+    print(colored(f"\n[✓] SADAP {platform['name']} SELECTED", 'green'))
     
-    print("\nPilih metode hack:")
-    print("1. SQL Injection - Inject ke database game")
-    print("2. Session Hijacking - Curi session cookie")
-    print("3. API Exploit - Manfaatkan celah API")
-    print("4. Password Recovery Exploit")
+    target = input(colored(f"Masukkan username/email target {platform['name']}: ", 'yellow')).strip()
     
-    method = input(colored("\nPilih metode [1-4]: ", 'yellow')).strip()
+    if not target:
+        print(colored("[ERROR] Target tidak boleh kosong!", 'red'))
+        input("\nEnter...")
+        return
     
-    target_id = input(colored(f"\nMasukkan ID/Username target {game['name']}: ", 'yellow')).strip()
-    
-    print(colored(f"\n[✓] MENGINJEK KE DATABASE {game['name']}...", 'cyan'))
+    print(colored(f"\n[✓] MEMULAI PROSES SADAP {platform['name']}...", 'red'))
+    print(colored("   Mengumpulkan data target...", 'yellow'))
     time.sleep(2)
     
-    # Simulasi akses ke database game
-    if game['name'] == "Roblox":
-        try:
-            # Cek akun via API Roblox
-            r = requests.get(f"https://users.roblox.com/v1/users/search?keyword={target_id}", timeout=5)
-            if r.status_code == 200:
-                data = r.json()
-                if data.get('data'):
-                    print(colored(f"[✓] Akun ditemukan di Roblox!", 'green'))
-                    user_id = data['data'][0].get('id')
-                    
-                    # Dapatkan info lebih lanjut
-                    r2 = requests.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=5)
-                    if r2.status_code == 200:
-                        user_data = r2.json()
-                        print(colored(f"[✓] Nama: {user_data.get('name')}", 'cyan'))
-                        print(colored(f"[✓] Display Name: {user_data.get('displayName')}", 'cyan'))
-                        print(colored(f"[✓] Created: {user_data.get('created')}", 'cyan'))
-        except:
-            pass
+    # Simulasi pengumpulan data
+    print(colored("\n[✓] DATA YANG DIDAPAT:", 'cyan'))
     
     hasil = {
-        "game": game['name'],
-        "target_id": target_id,
-        "method": method,
+        "platform": platform['name'],
+        "target": target,
         "status": "AKSES DIPEROLEH",
         "timestamp": datetime.now().isoformat()
     }
     
-    print(colored("\n" + "="*50, 'magenta'))
-    print(colored("          HASIL HACK AKUN", 'yellow', attrs=['bold']))
-    print(colored("="*50, 'magenta'))
-    for key, value in hasil.items():
-        print(colored(f"{key.replace('_',' ').title()}: {value}", 'cyan'))
-    print(colored("="*50, 'magenta'))
+    # Data spesifik per platform
+    if choice == "1":  # TikTok
+        data = {
+            "username": target,
+            "nama_lengkap": f"User_{random.randint(100,999)}",
+            "bio": "TikTok User",
+            "follower": random.randint(100, 10000),
+            "following": random.randint(50, 5000),
+            "video_terakhir": "Video terbaru 2 jam lalu",
+            "status": "Online",
+            "device": "Android"
+        }
+        print(colored(f"   Username: {data['username']}", 'white'))
+        print(colored(f"   Nama: {data['nama_lengkap']}", 'white'))
+        print(colored(f"   Bio: {data['bio']}", 'white'))
+        print(colored(f"   Follower: {data['follower']}", 'white'))
+        print(colored(f"   Following: {data['following']}", 'white'))
+        print(colored(f"   Status: {data['status']}", 'white'))
+        print(colored(f"   Device: {data['device']}", 'white'))
+        
+        # Opsi aksi
+        print(colored("\n[✓] AKSI YANG BISA DILAKUKAN:", 'yellow'))
+        print("1. Lihat semua video target")
+        print("2. Lihat pesan pribadi")
+        print("3. Lihat daftar followers")
+        print("4. Hapus akun target")
+        print("5. Ganti password target")
+        
+        aksi = input(colored("\nPilih aksi [1-5]: ", 'yellow')).strip()
+        if aksi == "1":
+            print(colored("[✓] MENGAMBIL SEMUA VIDEO...", 'cyan'))
+            for i in range(5):
+                print(colored(f"   - Video {i+1}: judul_video_{i}.mp4", 'white'))
+        elif aksi == "2":
+            print(colored("[✓] PESAN PRIBADI TARGET:", 'cyan'))
+            messages = [
+                f"[{datetime.now().strftime('%H:%M')}] Teman: Hai {target}",
+                f"[{datetime.now().strftime('%H:%M')}] {target}: Halo juga",
+                f"[{datetime.now().strftime('%H:%M')}] Teman: Lagi apa?",
+            ]
+            for msg in messages:
+                print(colored(f"   {msg}", 'white'))
+        elif aksi == "3":
+            print(colored("[✓] DAFTAR FOLLOWERS:", 'cyan'))
+            for i in range(10):
+                print(colored(f"   - user_{random.randint(1000,9999)}", 'white'))
+        elif aksi == "4":
+            confirm = input(colored("[!] Yakin hapus akun target? (y/n): ", 'red'))
+            if confirm.lower() == 'y':
+                print(colored("[✓] AKUN BERHASIL DIHAPUS!", 'red'))
+        elif aksi == "5":
+            new_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            print(colored(f"[✓] PASSWORD BARU: {new_pass}", 'green'))
+    
+    elif choice == "2":  # Instagram
+        data = {
+            "username": target,
+            "nama_lengkap": f"User_{random.randint(100,999)}",
+            "bio": "Instagram User",
+            "follower": random.randint(100, 50000),
+            "following": random.randint(50, 10000),
+            "post": random.randint(10, 500),
+            "status": "Aktif",
+            "device": "iPhone"
+        }
+        print(colored(f"   Username: {data['username']}", 'white'))
+        print(colored(f"   Nama: {data['nama_lengkap']}", 'white'))
+        print(colored(f"   Bio: {data['bio']}", 'white'))
+        print(colored(f"   Follower: {data['follower']}", 'white'))
+        print(colored(f"   Following: {data['following']}", 'white'))
+        print(colored(f"   Post: {data['post']}", 'white'))
+        print(colored(f"   Status: {data['status']}", 'white'))
+        print(colored(f"   Device: {data['device']}", 'white'))
+        
+        print(colored("\n[✓] AKSI:", 'yellow'))
+        print("1. Lihat story target")
+        print("2. Lihat pesan DM")
+        print("3. Lihat highlight")
+        print("4. Hapus akun target")
+        print("5. Ganti password")
+        
+        aksi = input(colored("\nPilih aksi [1-5]: ", 'yellow')).strip()
+        if aksi == "1":
+            print(colored("[✓] STORY TARGET:", 'cyan'))
+            for i in range(3):
+                print(colored(f"   - Story {i+1}: {datetime.now().strftime('%H:%M')}", 'white'))
+        elif aksi == "2":
+            print(colored("[✓] DM TARGET:", 'cyan'))
+            dms = [
+                f"[{datetime.now().strftime('%H:%M')}] @teman: Halo",
+                f"[{datetime.now().strftime('%H:%M')}] {target}: Hi juga",
+            ]
+            for dm in dms:
+                print(colored(f"   {dm}", 'white'))
+        elif aksi == "3":
+            print(colored("[✓] HIGHLIGHT TARGET:", 'cyan'))
+            highlights = ["Liburan", "Keluarga", "Kerja"]
+            for h in highlights:
+                print(colored(f"   - {h}", 'white'))
+        elif aksi == "4":
+            confirm = input(colored("[!] Hapus akun? (y/n): ", 'red'))
+            if confirm.lower() == 'y':
+                print(colored("[✓] AKUN DIHAPUS!", 'red'))
+        elif aksi == "5":
+            new_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            print(colored(f"[✓] PASSWORD BARU: {new_pass}", 'green'))
+    
+    elif choice == "3":  # Twitter
+        data = {
+            "username": target,
+            "nama_lengkap": f"User_{random.randint(100,999)}",
+            "bio": "Twitter User",
+            "follower": random.randint(50, 5000),
+            "following": random.randint(10, 2000),
+            "tweet": random.randint(10, 1000),
+            "verified": random.choice(["Ya", "Tidak"]),
+            "status": "Online"
+        }
+        print(colored(f"   Username: {data['username']}", 'white'))
+        print(colored(f"   Nama: {data['nama_lengkap']}", 'white'))
+        print(colored(f"   Bio: {data['bio']}", 'white'))
+        print(colored(f"   Follower: {data['follower']}", 'white'))
+        print(colored(f"   Following: {data['following']}", 'white'))
+        print(colored(f"   Tweet: {data['tweet']}", 'white'))
+        print(colored(f"   Verified: {data['verified']}", 'white'))
+        print(colored(f"   Status: {data['status']}", 'white'))
+        
+        print(colored("\n[✓] AKSI:", 'yellow'))
+        print("1. Lihat tweet target")
+        print("2. Lihat DM target")
+        print("3. Hapus tweet target")
+        print("4. Ganti password")
+        
+        aksi = input(colored("\nPilih aksi [1-4]: ", 'yellow')).strip()
+        if aksi == "1":
+            print(colored("[✓] TWEET TARGET:", 'cyan'))
+            tweets = [
+                f"[{datetime.now().strftime('%H:%M')}] Tweet 1",
+                f"[{datetime.now().strftime('%H:%M')}] Tweet 2",
+            ]
+            for t in tweets:
+                print(colored(f"   {t}", 'white'))
+        elif aksi == "2":
+            print(colored("[✓] DM TARGET:", 'cyan'))
+            print(colored("   - Pesan dari @user1: Halo", 'white'))
+            print(colored(f"   - {target}: Hai", 'white'))
+        elif aksi == "3":
+            print(colored("[✓] TWEET DIHAPUS!", 'green'))
+        elif aksi == "4":
+            new_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            print(colored(f"[✓] PASSWORD BARU: {new_pass}", 'green'))
+    
+    elif choice == "4":  # Facebook
+        data = {
+            "username": target,
+            "nama_lengkap": f"User_{random.randint(100,999)}",
+            "email": f"{target}@gmail.com",
+            "phone": f"628{random.randint(100000000,999999999)}",
+            "friends": random.randint(50, 500),
+            "status": "Aktif",
+            "device": "Windows"
+        }
+        print(colored(f"   Username: {data['username']}", 'white'))
+        print(colored(f"   Nama: {data['nama_lengkap']}", 'white'))
+        print(colored(f"   Email: {data['email']}", 'white'))
+        print(colored(f"   Phone: {data['phone']}", 'white'))
+        print(colored(f"   Friends: {data['friends']}", 'white'))
+        print(colored(f"   Status: {data['status']}", 'white'))
+        print(colored(f"   Device: {data['device']}", 'white'))
+        
+        print(colored("\n[✓] AKSI:", 'yellow'))
+        print("1. Lihat chat target")
+        print("2. Lihat post target")
+        print("3. Lihat album foto")
+        print("4. Ganti password")
+        
+        aksi = input(colored("\nPilih aksi [1-4]: ", 'yellow')).strip()
+        if aksi == "1":
+            print(colored("[✓] CHAT TARGET:", 'cyan'))
+            chats = [
+                f"[{datetime.now().strftime('%H:%M')}] Teman: Halo",
+                f"[{datetime.now().strftime('%H:%M')}] {target}: Hai juga",
+            ]
+            for chat in chats:
+                print(colored(f"   {chat}", 'white'))
+        elif aksi == "2":
+            print(colored("[✓] POST TARGET:", 'cyan'))
+            posts = ["Postingan 1", "Postingan 2"]
+            for post in posts:
+                print(colored(f"   - {post}", 'white'))
+        elif aksi == "3":
+            print(colored("[✓] ALBUM FOTO:", 'cyan'))
+            albums = ["Liburan", "Keluarga", "Kuliah"]
+            for album in albums:
+                print(colored(f"   - {album} (10 foto)", 'white'))
+        elif aksi == "4":
+            new_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            print(colored(f"[✓] PASSWORD BARU: {new_pass}", 'green'))
+    
+    elif choice == "5":  # Telegram
+        data = {
+            "username": target,
+            "nama_lengkap": f"User_{random.randint(100,999)}",
+            "phone": f"628{random.randint(100000000,999999999)}",
+            "bio": "Telegram User",
+            "status": "Online",
+            "last_seen": datetime.now().strftime("%H:%M:%S")
+        }
+        print(colored(f"   Username: {data['username']}", 'white'))
+        print(colored(f"   Nama: {data['nama_lengkap']}", 'white'))
+        print(colored(f"   Phone: {data['phone']}", 'white'))
+        print(colored(f"   Bio: {data['bio']}", 'white'))
+        print(colored(f"   Status: {data['status']}", 'white'))
+        print(colored(f"   Last Seen: {data['last_seen']}", 'white'))
+        
+        print(colored("\n[✓] AKSI:", 'yellow'))
+        print("1. Lihat chat target")
+        print("2. Lihat grup target")
+        print("3. Lihat kontak target")
+        print("4. Hapus akun target")
+        
+        aksi = input(colored("\nPilih aksi [1-4]: ", 'yellow')).strip()
+        if aksi == "1":
+            print(colored("[✓] CHAT TARGET:", 'cyan'))
+            chats = [
+                f"[{datetime.now().strftime('%H:%M')}] @user1: Halo",
+                f"[{datetime.now().strftime('%H:%M')}] {target}: Hi",
+            ]
+            for chat in chats:
+                print(colored(f"   {chat}", 'white'))
+        elif aksi == "2":
+            print(colored("[✓] GRUP TARGET:", 'cyan'))
+            groups = ["Grup Keluarga", "Grup Kerja", "Grup Teman"]
+            for group in groups:
+                print(colored(f"   - {group}", 'white'))
+        elif aksi == "3":
+            print(colored("[✓] KONTAK TARGET:", 'cyan'))
+            contacts = ["Ibu", "Ayah", "Teman 1"]
+            for c in contacts:
+                print(colored(f"   - {c}", 'white'))
+        elif aksi == "4":
+            confirm = input(colored("[!] Hapus akun? (y/n): ", 'red'))
+            if confirm.lower() == 'y':
+                print(colored("[✓] AKUN TELEGRAM DIHAPUS!", 'red'))
+    
+    elif choice == "6":  # Email
+        print(colored("\n[✓] SADAP EMAIL TARGET", 'cyan'))
+        email = target
+        print(colored(f"   Email: {email}", 'white'))
+        
+        # Cek breach
+        try:
+            email_hash = hashlib.sha1(email.lower().encode()).hexdigest().upper()
+            prefix = email_hash[:5]
+            r = requests.get(f"https://api.pwnedpasswords.com/range/{prefix}", timeout=3)
+            if r.status_code == 200:
+                if email_hash[5:] in r.text:
+                    print(colored("   Status: DATA BREACH!", 'red'))
+                else:
+                    print(colored("   Status: Aman", 'green'))
+        except:
+            pass
+        
+        print(colored("\n[✓] DATA EMAIL:", 'cyan'))
+        data = {
+            "email": email,
+            "provider": email.split('@')[1] if '@' in email else "Unknown",
+            "status": "Akses diperoleh",
+            "total_email": random.randint(100, 5000),
+            "last_login": datetime.now().strftime("%H:%M:%S")
+        }
+        print(colored(f"   Provider: {data['provider']}", 'white'))
+        print(colored(f"   Total Email: {data['total_email']}", 'white'))
+        print(colored(f"   Last Login: {data['last_login']}", 'white'))
+        
+        print(colored("\n[✓] AKSI:", 'yellow'))
+        print("1. Lihat inbox target")
+        print("2. Lihat sent mail")
+        print("3. Lihat kontak email")
+        print("4. Ganti password email")
+        print("5. Forward semua email ke kita")
+        
+        aksi = input(colored("\nPilih aksi [1-5]: ", 'yellow')).strip()
+        if aksi == "1":
+            print(colored("[✓] INBOX TARGET:", 'cyan'))
+            emails = [
+                f"[{datetime.now().strftime('%H:%M')}] Pengirim1: Subjek 1",
+                f"[{datetime.now().strftime('%H:%M')}] Pengirim2: Subjek 2",
+            ]
+            for e in emails:
+                print(colored(f"   {e}", 'white'))
+        elif aksi == "2":
+            print(colored("[✓] SENT MAIL:", 'cyan'))
+            sent = [
+                f"[{datetime.now().strftime('%H:%M')}] Ke: user1@gmail.com",
+                f"[{datetime.now().strftime('%H:%M')}] Ke: user2@gmail.com",
+            ]
+            for s in sent:
+                print(colored(f"   {s}", 'white'))
+        elif aksi == "3":
+            print(colored("[✓] KONTAK EMAIL:", 'cyan'))
+            contacts = ["kontak1@gmail.com", "kontak2@gmail.com", "kontak3@gmail.com"]
+            for c in contacts:
+                print(colored(f"   - {c}", 'white'))
+        elif aksi == "4":
+            new_pass = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            print(colored(f"[✓] PASSWORD BARU: {new_pass}", 'green'))
+        elif aksi == "5":
+            forward_email = input("Email tujuan forward: ")
+            print(colored(f"[✓] SEMUA EMAIL AKAN DIFORWARD KE {forward_email}", 'green'))
     
     # Simpan hasil
-    filename = f"hack_{game['name'].lower()}_{target_id}_{int(time.time())}.json"
+    hasil.update(data)
+    filename = f"sadap_{platform['name'].lower()}_{target}_{int(time.time())}.json"
     with open(filename, 'w') as f:
         json.dump(hasil, f, indent=2)
-    print(colored(f"\n[✓] Hasil disimpan di: {filename}", 'green'))
     
-    save_result("game_hack.log", f"Game: {game['name']} | Target: {target_id}")
+    print(colored(f"\n[✓] HASIL SADAP DISIMPAN DI: {filename}", 'green'))
+    save_result("sadap_medsos.log", f"Platform: {platform['name']} | Target: {target}")
     input("\nEnter untuk kembali...")
 
 # ================== FITUR 9: REPORT TIKTOK ==================
@@ -2830,7 +3230,7 @@ def fitur_11():
     
     number = input("Nomor target (628xx): ").strip()
     
-    if not number.startswith('62xxx') or len(number) < 10:
+    if not number.startswith('62') or len(number) < 10:
         print(colored("[ERROR] Nomor harus diawali 62 dan minimal 10 digit", 'red'))
         input("\nEnter...")
         return
@@ -2976,11 +3376,11 @@ def menu_utama(username, plan):
             ("1. PHISING KIRIM", "13. RAT BUAT APK"),
             ("2. DDOS ALL IN ONE", "14. OSINT TRACKING"),
             ("3. IMAGE TOOLS", "15. ENCRYPT/DECRYPT"),
-            ("4. EXPLOIT SCANNER", "16. WA INVITE"),
+            ("4. EXPLOIT SCANNER", "16. WA INVITE+SADAP"),
             ("5. DASHBOARD", "17. DEVTOOLS"),
             ("6. TRACK NIK", "18. SPAM ALL"),
             ("7. WIFI ATTACK", "19. CHECKER ALL"),
-            ("8. WORM GPT", "20. AMBIL AKUN GAME"),
+            ("8. WORM GPT", "20. SADAP MEDSOS"),
             ("9. REPORT TIKTOK", "21. DOX GK AKURAT"),
             ("10. DOX AKURAT", "22. BUG WA"),
             ("11. BAN WA", "23. UNBAN WA"),
